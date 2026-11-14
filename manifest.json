@@ -1,20 +1,20 @@
 [
-  {
-    "guid": "6a1d7f43-9c2b-4e58-b0a4-3f7c1d9e5b28",
-    "name": "IB3",
-    "description": "Genera una biblioteca de series a partir del catálogo a la carta de IB3 (.strm + metadatos + subtítulos).",
-    "overview": "Replica el catálogo de IB3 como biblioteca de series de Jellyfin mediante archivos .strm, con metadatos .nfo, carátulas y subtítulos SRT convertidos desde los WebVTT originales.",
-    "owner": "Lowitle",
-    "category": "General",
-    "versions": [
-      {
-        "version": "1.0.0.0",
-        "changelog": "Primera versión. Replica el catálogo a la carta de IB3 como biblioteca de series de Jellyfin: busca los programas por título o slug en el catálogo, resuelve la URL de cualquier programa de totib3.org y enseña cuántos vídeos publica, cuántos se pueden añadir y cuántos han caducado antes de añadirlo. Cada programa se escribe como .strm con la URL del MP4 progresivo, con un .nfo por episodio y un tvshow.nfo con el id del programa, la carátula, el fondo y sus géneros, la miniatura de cada episodio y los subtítulos convertidos de WebVTT a SRT; la numeración de IB3 manda cuando es un número y los vídeos caducados se omiten. La página comprueba la carpeta de destino, crea la biblioteca que la indexa, organiza los programas por tipo en subcarpetas o los deja en la carpeta madre, permite fijar la carpeta de cada programa y lanza la actualización, que también se ejecuta cada N horas con la tarea programada.",
-        "targetAbi": "10.11.0.0",
-        "sourceUrl": "https://github.com/Lowitle/Jellyfin-IB3/releases/download/v1.0.0.0/ib3_1.0.0.0.zip",
-        "checksum": "345E8EB9B6AFFD9436957CAF29FE2E4D",
-        "timestamp": "2026-11-14T11:43:59Z"
-      }
-    ]
-  }
+{
+  "guid": "6a1d7f43-9c2b-4e58-b0a4-3f7c1d9e5b28",
+  "name": "IB3",
+  "description": "Genera una biblioteca de series a partir del catálogo a la carta de IB3 (.strm + metadatos + subtítulos).",
+  "overview": "Replica el catálogo de IB3 como biblioteca de series de Jellyfin mediante archivos .strm, con metadatos .nfo, carátulas y subtítulos SRT convertidos desde los WebVTT originales.",
+  "owner": "Lowitle",
+  "category": "General",
+  "versions": [
+    {
+      "version": "1.0.0.0",
+      "changelog": "Primera versión. Replica el catálogo a la carta de IB3 como biblioteca de series de Jellyfin: busca los programas por título o slug en el catálogo, resuelve la URL de cualquier programa de totib3.org y enseña cuántos vídeos publica, cuántos se pueden añadir y cuántos han caducado antes de añadirlo. Cada programa se escribe como .strm con la URL del MP4 progresivo, con un .nfo por episodio y un tvshow.nfo con el id del programa, la carátula, el fondo y sus géneros, la miniatura de cada episodio y los subtítulos convertidos de WebVTT a SRT; la numeración de IB3 manda cuando es un número y los vídeos caducados se omiten. La página comprueba la carpeta de destino, crea la biblioteca que la indexa, organiza los programas por tipo en subcarpetas o los deja en la carpeta madre, permite fijar la carpeta de cada programa y lanza la actualización, que también se ejecuta cada N horas con la tarea programada.",
+      "targetAbi": "10.11.0.0",
+      "sourceUrl": "https://github.com/Lowitle/Jellyfin-IB3/releases/download/v1.0.0.0/ib3_1.0.0.0.zip",
+      "checksum": "311587753D9DB908B92161F4DCA5509D",
+      "timestamp": "2026-11-14T18:15:45Z"
+    }
+  ]
+}
 ]
