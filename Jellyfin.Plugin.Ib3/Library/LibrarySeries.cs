@@ -27,8 +27,8 @@ public sealed class LibrarySeries
     public string? Plot { get; set; }
 
     /// <summary>
-    /// Gets or sets the genres written to the <c>tvshow.nfo</c>. The first one is the kind of program
-    /// ("Sèrie", "Documental", "Informatius"...); Jellyfin shows them as filters.
+    /// Gets or sets the genres written to the <c>tvshow.nfo</c>. The first one is the section of the
+    /// platform ("Sèrie", "Documental", "Actualitat"...); Jellyfin shows them as filters.
     /// </summary>
     public IReadOnlyCollection<string> Genres { get; set; } = [];
 

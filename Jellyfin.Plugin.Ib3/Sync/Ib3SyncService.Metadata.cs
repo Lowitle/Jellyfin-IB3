@@ -57,17 +57,24 @@ public sealed partial class Ib3SyncService
         => Distinct(Names(program.Categories).Concat(Names(Subcategories(program))));
 
     /// <summary>
-    /// Names the kind of program as a genre («Sèrie», «Documental», «Informatius», «Infantil»...).
+    /// Names the section of a program as a genre («Sèrie», «Documental», «Actualitat», «Pel·lícula»...).
     /// </summary>
     /// <param name="program">Program of the catalog.</param>
-    /// <returns>The genre of the kind of program.</returns>
+    /// <returns>The genre of the section of the program.</returns>
+    /// <remarks>
+    /// The genre is the section and not the subcategory: the subcategories are written as tags too, so a
+    /// client that groups by genre keeps the eight sections of the platform.
+    /// </remarks>
     internal static string KindLabel(Ib3Program program)
         => LibraryCategory.Resolve(Ib3Client.Ib3CategoryName(program), null) switch
         {
             LibraryCategory.Series => "Sèrie",
+            LibraryCategory.Cinema => "Pel·lícula",
             LibraryCategory.Documentaries => "Documental",
-            LibraryCategory.News => "Informatius",
-            LibraryCategory.Children => "Infantil",
+            LibraryCategory.News => "Actualitat",
+            LibraryCategory.Broadcasts => "Retransmissió",
+            LibraryCategory.Featured => "Destacat",
+            LibraryCategory.Archive => "Arxiu",
             _ => "Programa"
         };
 

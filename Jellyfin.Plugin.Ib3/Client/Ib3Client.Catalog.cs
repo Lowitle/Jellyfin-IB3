@@ -193,14 +193,77 @@ public sealed partial class Ib3Client
     }
 
     /// <summary>
-    /// Gets the name of the first category of a program («Sèries», «Documentals»…).
+    /// Gets the name of the first video category of a program («Sèries», «Documentals»…).
     /// </summary>
     /// <param name="program">Program of the catalog.</param>
     /// <returns>The name of the category, or <c>null</c> when IB3 files the program under none.</returns>
+    /// <remarks>
+    /// The catalog also files programs under audio categories with the same name as a video section, so the
+    /// video ones are preferred; a program filed under neither keeps the first name it publishes.
+    /// </remarks>
     internal static string? Ib3CategoryName(Ib3Program? program)
-        => program?.Categories?
-            .Select(category => category.Name)
-            .FirstOrDefault(name => !string.IsNullOrWhiteSpace(name));
+    {
+        var name = Section(program)?.Name?.Trim();
+
+        return string.IsNullOrEmpty(name) ? null : name;
+    }
+
+    /// <summary>
+    /// Gets the name of the first subcategory of the section of a program («Documentals històrics», «IB3
+    /// Júnior»...).
+    /// </summary>
+    /// <param name="program">Program of the catalog.</param>
+    /// <returns>The name of the subcategory, or <c>null</c> when IB3 files the program under none.</returns>
+    /// <remarks>
+    /// The subcategory is read from the same category that names the section, so the subfolder always
+    /// belongs to the section of the program.
+    /// </remarks>
+    internal static string? Ib3SubcategoryName(Ib3Program? program)
+    {
+        var subcategories = Section(program)?.Subcategories;
+
+        if (subcategories is null)
+        {
+            return null;
+        }
+
+        return subcategories
+            .Select(subcategory => subcategory.Name?.Trim())
+            .FirstOrDefault(name => !string.IsNullOrEmpty(name));
+    }
+
+    /// <summary>
+    /// Picks the category of the catalog that files a program under its section: the first one of a video
+    /// section, in the order of the menu of totib3.org, and, for a program filed under none, the first one
+    /// that has a name.
+    /// </summary>
+    /// <param name="program">Program of the catalog.</param>
+    /// <returns>The category of the section, or <c>null</c> when the program publishes none.</returns>
+    /// <remarks>
+    /// <para>
+    /// The catalog also files programs under audio categories that share their name with a video section
+    /// («Actualitat», «Destacat», «Arxiu»), so the video ones win.
+    /// </para>
+    /// <para>
+    /// A program can be published by two sections («Actualitat» and «Programes»), and the API does not
+    /// keep a stable order, so the menu of the site decides which folder it goes to: the news section
+    /// comes before the magazines, which is where the program is really filed.
+    /// </para>
+    /// </remarks>
+    private static Ib3Category? Section(Ib3Program? program)
+    {
+        var categories = program?.Categories;
+        if (categories is null || categories.Count == 0)
+        {
+            return null;
+        }
+
+        return categories
+                .Where(category => Ib3Categories.IsVideo(category) && !string.IsNullOrWhiteSpace(category.Name))
+                .OrderBy(category => Ib3Categories.OrderOf(category.Id))
+                .FirstOrDefault()
+            ?? categories.FirstOrDefault(category => !string.IsNullOrWhiteSpace(category.Name));
+    }
 
     private static bool Same(string? left, string? right)
         => string.Equals(left?.Trim(), right?.Trim(), StringComparison.OrdinalIgnoreCase);

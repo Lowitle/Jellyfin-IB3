@@ -120,7 +120,7 @@ public sealed class Ib3Image
 }
 
 /// <summary>
-/// A category of the IB3 catalog (<c>Sèries</c>, <c>Documentals</c>, <c>Informatius</c>...) with the
+/// A category of the IB3 catalog (<c>Sèries</c>, <c>Documentals</c>, <c>Actualitat</c>...) with the
 /// subcategories the program is filed under.
 /// </summary>
 public sealed class Ib3Category
@@ -136,6 +136,16 @@ public sealed class Ib3Category
     /// </summary>
     [JsonPropertyName("name")]
     public string? Name { get; set; }
+
+    /// <summary>
+    /// Gets or sets the kind of content the category files (<c>video</c>, <c>audio</c>).
+    /// </summary>
+    /// <remarks>
+    /// The catalog has a section of video and another one of audio with the same name («Actualitat»,
+    /// «Destacat», «Arxiu»), so the type is what tells them apart.
+    /// </remarks>
+    [JsonPropertyName("type")]
+    public string? Type { get; set; }
 
     /// <summary>
     /// Gets or sets the subcategories. IB3 repeats each one many times, so the synchronization

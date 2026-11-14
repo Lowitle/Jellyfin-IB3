@@ -47,10 +47,20 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool DeleteObsoleteFiles { get; set; } = true;
 
     /// <summary>
-    /// Gets or sets a value indicating whether each program is written in the subfolder of its kind
-    /// («Series», «Documentals», «Infantil»...).
+    /// Gets or sets a value indicating whether each program is written in the subfolder of its section
+    /// («Sèries», «Documentals», «Actualitat»...).
     /// </summary>
     public bool OrganizeByKind { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether each program is written in a subfolder of its subcategory
+    /// («Documentals/Història», «Programes/IB3 Júnior»...) inside the folder of its section.
+    /// </summary>
+    /// <remarks>
+    /// It only applies with <see cref="OrganizeByKind"/> on, which is what creates the folder of the section.
+    /// A program IB3 files under no subcategory is written straight in the folder of its section.
+    /// </remarks>
+    public bool OrganizeBySubcategory { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the name of the library the plugin offers to create.

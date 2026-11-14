@@ -12,10 +12,10 @@ namespace Jellyfin.Plugin.Ib3.Library;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The plugin writes every program under one folder of its kind («Sèries», «Documentals»...) inside the
-/// destination folder, so a single library of type «Programas de TV» pointing at the destination indexes
-/// all of them: Jellyfin walks the subfolders and a curated library can point at just one of the folders
-/// without any copy.
+/// The plugin writes every program under one folder per section of the platform («Sèries»,
+/// «Documentals», «Actualitat»...) inside the destination folder, so a single library of type «Programas de
+/// TV» pointing at the destination indexes all of them: Jellyfin walks the subfolders and a curated library
+/// can point at just one of the folders without any copy.
 /// </para>
 /// <para>
 /// The plugin only writes <c>.strm</c>, <c>.nfo</c> and <c>.srt</c> files: the library has to read the
@@ -92,6 +92,8 @@ public static class LibraryProvisioner
                 []);
         }
 
+        CreateSections(folder, logger);
+
         var libraries = libraryManager.GetVirtualFolders() ?? [];
         var libraryName = string.IsNullOrWhiteSpace(name) ? DefaultLibraryName : name.Trim();
 
@@ -115,6 +117,35 @@ public static class LibraryProvisioner
         }
 
         return Create(libraryName, folder, libraries, libraryManager, libraryMonitor, logger);
+    }
+
+    /// <summary>
+    /// Creates the folders of the eight sections of the platform under the destination folder, so the
+    /// library shows the layout from the first scan instead of an empty root until the synchronization
+    /// writes the first program of each section.
+    /// </summary>
+    /// <param name="folder">Destination folder of the plugin.</param>
+    /// <param name="logger">Logger.</param>
+    /// <remarks>
+    /// The folders are empty and harmless: with the layout off
+    /// (<see cref="Configuration.PluginConfiguration.OrganizeByKind"/>) the synchronization writes straight
+    /// under the destination folder and Jellyfin indexes nothing inside them. A folder that cannot be
+    /// created does not fail the request; the synchronization recreates it when it writes the first program
+    /// of the section.
+    /// </remarks>
+    private static void CreateSections(string folder, ILogger logger)
+    {
+        foreach (var section in LibraryCategory.All)
+        {
+            try
+            {
+                Directory.CreateDirectory(LibraryCategory.Folder(folder, section));
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or NotSupportedException)
+            {
+                logger.LogWarning(ex, "IB3: no se pudo crear la carpeta de la sección {Section}", section);
+            }
+        }
     }
 
     /// <summary>

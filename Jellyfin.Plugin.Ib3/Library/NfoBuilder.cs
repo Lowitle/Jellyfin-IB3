@@ -15,7 +15,7 @@ internal static class NfoBuilder
     /// <returns>The NFO content.</returns>
     /// <remarks>
     /// The genres are what Jellyfin shows as filters in the library («Sèrie», «Documental»,
-    /// «Informatius»...), and the tags keep the exact IB3 category the program is filed under. The
+    /// «Actualitat»...), and the tags keep the exact IB3 category the program is filed under. The
     /// <c>ib3</c> unique id is always present and default: it is the key the plugin uses to recognise the
     /// series and to tell whether a folder is its own.
     /// </remarks>

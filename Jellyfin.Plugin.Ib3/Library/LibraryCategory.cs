@@ -1,14 +1,18 @@
+using Jellyfin.Plugin.Ib3.Client;
+
 namespace Jellyfin.Plugin.Ib3.Library;
 
 /// <summary>
-/// Folders the programs of IB3 are written to, one per kind of program.
+/// Folders the programs of IB3 are written to, one per section of <c>totib3.org</c>, plus the subfolder of
+/// the subcategory each program is filed under.
 /// </summary>
 /// <remarks>
-/// A destination folder that holds every program straight under it forces the user to keep a single
-/// library: Jellyfin filters by genre, but «Documentals», «Informatius» or «Infantil» cannot be libraries
-/// of their own. With one folder per kind the plugin writes each program where its kind belongs, the
-/// default «IB3» library indexes the folders of the series and a curated library can point at just one of
-/// them —Jellyfin indexes a folder in every library that points at it, so no file is duplicated.
+/// The platform publishes eight sections of video —«Actualitat», «Retransmissions», «Sèries», «Cinema»,
+/// «Documentals», «Programes», «Destacat» and «Arxiu»— and most of them are divided in subcategories. A
+/// destination folder that holds every program straight under it forces the user to keep a single library:
+/// with one folder per section the default «IB3» library indexes all of them and a curated library can
+/// point at just one —Jellyfin indexes a folder in every library that points at it, so no file is
+/// duplicated—, while the subfolder adds the second level the site shows in its menu.
 /// <para>
 /// The folders are only written when the user turns the layout on
 /// (<see cref="Configuration.PluginConfiguration.OrganizeByKind"/>): a library written with the layout off
@@ -18,37 +22,45 @@ namespace Jellyfin.Plugin.Ib3.Library;
 /// </remarks>
 internal static class LibraryCategory
 {
-    /// <summary>The miscellany: contests, music, culture, cooking and the unknown.</summary>
-    internal const string Shows = "Programes";
+    /// <summary>News, current affairs and the daily bulletins («Actualitat»).</summary>
+    internal const string News = Ib3Categories.Actualitat;
 
-    /// <summary>Fiction series.</summary>
-    internal const string Series = "Sèries";
+    /// <summary>Live broadcasts and sports («Retransmissions»).</summary>
+    internal const string Broadcasts = Ib3Categories.Retransmissions;
 
-    /// <summary>Documentaries and docu-series.</summary>
-    internal const string Documentaries = "Documentals";
+    /// <summary>Fiction series («Sèries»).</summary>
+    internal const string Series = Ib3Categories.Series;
 
-    /// <summary>News and current affairs.</summary>
-    internal const string News = "Informatius";
+    /// <summary>Films and made-for-TV movies («Cinema»).</summary>
+    internal const string Cinema = Ib3Categories.Cinema;
 
-    /// <summary>Children's programmes.</summary>
-    internal const string Children = "Infantil";
+    /// <summary>Documentaries and docu-series («Documentals»).</summary>
+    internal const string Documentaries = Ib3Categories.Documentaries;
+
+    /// <summary>Magazines, contests, cooking and children's programmes («Programes»).</summary>
+    internal const string Shows = Ib3Categories.Shows;
+
+    /// <summary>The programs the platform highlights («Destacat»).</summary>
+    internal const string Featured = Ib3Categories.Featured;
+
+    /// <summary>Everything the platform keeps in its archive («Arxiu»).</summary>
+    internal const string Archive = Ib3Categories.Archive;
 
     /// <summary>
-    /// Gets the folders the «IB3» library indexes, one per kind.
+    /// Gets the folders the «IB3» library indexes, one per section.
     /// </summary>
     /// <remarks>
-    /// The order is the one the configuration page shows, most specific first, and it is stable: the
-    /// provisioning adds the folders that are missing and never renames them.
+    /// The order is the one of the menu of the site, and it is stable: the provisioning adds the folders
+    /// that are missing and never renames them.
     /// </remarks>
-    internal static IReadOnlyList<string> All { get; } =
-        [Shows, Series, Documentaries, News, Children];
+    internal static IReadOnlyList<string> All { get; } = Ib3Categories.Names;
 
     /// <summary>
     /// Resolves the folder a program is written to.
     /// </summary>
     /// <param name="category">
-    /// Name of the IB3 category the program is filed under («Sèries», «Documentals»,
-    /// «Informatius»...), or <c>null</c> when IB3 files it under none.
+    /// Name of the IB3 category the program is filed under («Sèries», «Documentals», «Actualitat»...), or
+    /// <c>null</c> when IB3 files it under none.
     /// </param>
     /// <param name="pinned">
     /// Folder the user pinned for the program, or <c>null</c> to keep the classification of the catalog.
@@ -66,10 +78,14 @@ internal static class LibraryCategory
     }
 
     /// <summary>
-    /// Normalizes the name of a kind of program to the folder of the layout.
+    /// Normalizes the name of a section to the folder of the layout.
     /// </summary>
-    /// <param name="category">Name typed or stored in the configuration, in any casing.</param>
-    /// <returns>The folder of the kind, or <c>null</c> when it is not one of the folders of the layout.</returns>
+    /// <param name="category">Name typed or stored in the configuration, in any casing and with or without accents.</param>
+    /// <returns>The folder of the section, or <c>null</c> when it is not one of the folders of the layout.</returns>
+    /// <remarks>
+    /// The names of the previous versions of the plugin («Informatius», «Infantil») are mapped to the section
+    /// that holds them now, so a configuration written before the move keeps working without a migration.
+    /// </remarks>
     internal static string? Normalize(string? category)
     {
         if (string.IsNullOrWhiteSpace(category))
@@ -81,46 +97,64 @@ internal static class LibraryCategory
 
         foreach (var folder in All)
         {
-            if (Same(value, folder))
+            if (Ib3Text.Key(value) == Ib3Text.Key(folder))
             {
                 return folder;
             }
         }
 
-        // IB3 publishes some names in the singular («Sèrie», «Documental»), and the news category is also
-        // called «Actualitat» in the web player.
-        if (Same(value, "Sèrie") || Same(value, "Series") || Same(value, "Serie"))
+        // The catalog publishes some names in the singular («Sèrie», «Documental») and the site uses other
+        // words for the same section («Informàtius», «Infantil», «Esports»).
+        return Ib3Text.Key(value) switch
         {
-            return Series;
-        }
-
-        if (Same(value, "Documental") || Same(value, "Documentales"))
-        {
-            return Documentaries;
-        }
-
-        if (Same(value, "Informatiu") || Same(value, "Actualitat") || Same(value, "Notícies"))
-        {
-            return News;
-        }
-
-        if (Same(value, "Infantils") || Same(value, "Menuts"))
-        {
-            return Children;
-        }
-
-        return null;
+            "serie" or "series" or "ficcio" or "ficcion" => Series,
+            "documental" or "documentals" or "documentales" or "documentary" => Documentaries,
+            "informatiu" or "informatius" or "informativos" or "noticies" or "noticias" or "news" => News,
+            "retransmissio" or "retransmissions" or "retransmisiones" or "directes" or "esports"
+                or "deportes" or "sports" => Broadcasts,
+            "pelicula" or "pelicules" or "peliculas" or "films" or "movies" => Cinema,
+            "programa" or "programes" or "programas" or "infantil" or "infantils" or "menuts"
+                or "junior" or "shows" => Shows,
+            "destacat" or "destacats" or "destacados" or "featured" => Featured,
+            "arxiu" or "arxius" or "archivo" or "archive" => Archive,
+            _ => null
+        };
     }
 
     /// <summary>
-    /// Builds the folder a category is written to.
+    /// Normalizes the name of a subcategory to a single folder name.
+    /// </summary>
+    /// <param name="subcategory">Subcategory the program is filed under, or <c>null</c>.</param>
+    /// <returns>The folder of the subcategory, or <c>null</c> when there is none to write.</returns>
+    /// <remarks>
+    /// The subcategory is a name of the platform («IB3 Júnior», «Documentals històrics»), so it is only
+    /// sanitized: nothing of the layout depends on its value, it only subdivides the folder of the section.
+    /// </remarks>
+    internal static string? Subcategory(string? subcategory)
+    {
+        var name = string.IsNullOrWhiteSpace(subcategory) ? null : LibraryNaming.Sanitize(subcategory, 80, string.Empty);
+
+        return string.IsNullOrEmpty(name) ? null : name;
+    }
+
+    /// <summary>
+    /// Builds the folder a section is written to.
     /// </summary>
     /// <param name="rootPath">Destination folder of the plugin.</param>
-    /// <param name="category">Category of the program.</param>
-    /// <returns>The folder of the category.</returns>
+    /// <param name="category">Section of the program.</param>
+    /// <returns>The folder of the section.</returns>
     internal static string Folder(string rootPath, string category)
         => Path.Combine(rootPath, category);
 
-    private static bool Same(string? left, string right)
-        => string.Equals(left?.Trim(), right, StringComparison.OrdinalIgnoreCase);
+    /// <summary>
+    /// Builds the folder a program is written to, with the subfolder of its subcategory when it has one.
+    /// </summary>
+    /// <param name="rootPath">Destination folder of the plugin.</param>
+    /// <param name="category">Section of the program.</param>
+    /// <param name="subcategory">Subcategory of the program, or <c>null</c>.</param>
+    /// <returns>The folder of the section, or the subfolder of the subcategory inside it.</returns>
+    internal static string Folder(string rootPath, string category, string? subcategory)
+        => Subcategory(subcategory) is { } name
+            ? Path.Combine(Folder(rootPath, category), name)
+            : Folder(rootPath, category);
 }

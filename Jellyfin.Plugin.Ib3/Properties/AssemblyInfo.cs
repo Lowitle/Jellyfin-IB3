@@ -7,8 +7,8 @@ using System.Runtime.InteropServices;
 
 // The project generates its own assembly attributes (GenerateAssemblyInfo is off), so the version of
 // Directory.Build.props has to be applied by hand: the plugin catalog and the update check read it.
-[assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0.0.0")]
+[assembly: AssemblyVersion("1.1.0.0")]
+[assembly: AssemblyFileVersion("1.1.0.0")]
 
 // The unit tests and the probe tool exercise the internal helpers (NfoBuilder, Ib3Text, VttToSrt...).
 [assembly: InternalsVisibleTo("Jellyfin.Plugin.Ib3.Tests")]

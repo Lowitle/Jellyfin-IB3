@@ -32,6 +32,11 @@
                 min-width: 12em;
             }
 
+            #Ib3ConfigPage .ib3Row > .emby-select {
+                flex: 0 1 15em;
+                min-width: 11em;
+            }
+
             #Ib3ConfigPage .ib3TableWrap {
                 overflow-x: auto;
                 margin: 0.6em 0;
@@ -160,6 +165,52 @@
                 </div>
 
                 <div class="verticalSection">
+                    <h2 class="sectionTitle">Secciones de IB3</h2>
+                    <p class="fieldDescription">
+                        Cada secci&oacute;n de totib3.org es una carpeta de la biblioteca
+                        (<span class="ib3Mono">Actualitat</span>, <span class="ib3Mono">S&egrave;ries</span>,
+                        <span class="ib3Mono">Documentals</span>...) y muchas se dividen en subcategor&iacute;as.
+                        Elige una secci&oacute;n para ver sus programas y a&ntilde;adirlos sin buscarlos uno a
+                        uno.
+                    </p>
+
+                    <div class="ib3Row">
+                        <select id="Ib3SectionSelect" is="emby-select" class="emby-select-withcolor"></select>
+                        <select id="Ib3SubcategorySelect" is="emby-select" class="emby-select-withcolor"></select>
+                        <button id="Ib3SectionButton" is="emby-button" type="button" class="raised">
+                            <span>Ver programas</span>
+                        </button>
+                    </div>
+
+                    <div id="Ib3SectionStatus" class="ib3Status"></div>
+
+                    <div id="Ib3SectionWrap" class="ib3TableWrap" style="display: none;">
+                        <table class="ib3Table">
+                            <thead>
+                                <tr>
+                                    <th>Programa</th>
+                                    <th>Secci&oacute;n</th>
+                                    <th>Subcategor&iacute;a</th>
+                                    <th>Slug</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="Ib3SectionBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="ib3Row" id="Ib3SectionToolbar" style="display: none;">
+                        <button id="Ib3SectionAddAll" is="emby-button" type="button" class="raised">
+                            <span>A&ntilde;adir todos los programas de la lista</span>
+                        </button>
+                        <span class="ib3Muted">
+                            Se a&ntilde;aden los programas que no est&eacute;n ya en la lista; guarda despu&eacute;s
+                            para aplicarlo.
+                        </span>
+                    </div>
+                </div>
+
+                <div class="verticalSection">
                     <h2 class="sectionTitle">Programas</h2>
                     <p class="fieldDescription">
                         Busca el programa en el cat&aacute;logo de IB3 y a&ntilde;&aacute;delo: cada programa se
@@ -252,14 +303,27 @@
                     <div class="checkboxContainer checkboxContainer-withDescription">
                         <label class="emby-checkbox-label">
                             <input id="Ib3OrganizeByKind" is="emby-checkbox" type="checkbox" />
-                            <span>Separar los programas en carpetas por tipo</span>
+                            <span>Separar los programas en carpetas por secci&oacute;n</span>
                         </label>
                         <div class="fieldDescription checkboxFieldDescription">
-                            Cada programa se escribe en <span class="ib3Mono">Programes</span>,
-                            <span class="ib3Mono">S&egrave;ries</span>,
-                            <span class="ib3Mono">Documentals</span>,
-                            <span class="ib3Mono">Informatius</span> o
-                            <span class="ib3Mono">Infantil</span>.
+                            Cada programa se escribe en la carpeta de su secci&oacute;n de totib3.org:
+                            <span class="ib3Mono">Actualitat</span>, <span class="ib3Mono">Retransmissions</span>,
+                            <span class="ib3Mono">S&egrave;ries</span>, <span class="ib3Mono">Cinema</span>,
+                            <span class="ib3Mono">Documentals</span>, <span class="ib3Mono">Programes</span>,
+                            <span class="ib3Mono">Destacat</span> o <span class="ib3Mono">Arxiu</span>.
+                        </div>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
+                            <input id="Ib3OrganizeBySubcategory" is="emby-checkbox" type="checkbox" />
+                            <span>Separar adem&aacute;s por subcategor&iacute;a</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">
+                            Dentro de la secci&oacute;n se abre la subcarpeta de la subcategor&iacute;a de IB3
+                            (<span class="ib3Mono">Documentals/Hist&ograve;ria</span>,
+                            <span class="ib3Mono">Programes/IB3 J&uacute;nior</span>...). Un programa sin
+                            subcategor&iacute;a se escribe directamente en la carpeta de su secci&oacute;n.
                         </div>
                     </div>
 
@@ -310,8 +374,11 @@
                     // Programs as the page keeps them: the ones loaded from the configuration plus the ones
                     // the user adds, saved as they are.
                     programs: [],
-                    // Folders of the layout, read from «IB3/Kinds»: the page never repeats the names.
-                    kinds: []
+                    // Sections of the platform and their subcategories, read from «IB3/Kinds»: the page never
+                    // repeats the names.
+                    kinds: [],
+                    // Programs of the section shown in the table below the pickers.
+                    sectionPrograms: []
                 };
 
                 // The values of «query» travel as they are: ApiClient.getUrl serialises them itself and it
@@ -371,6 +438,13 @@
 
                 function ib3ProgramsStatus(message) {
                     document.querySelector('#Ib3ProgramsStatus').textContent = message || '';
+                }
+
+                function ib3SectionStatus(message, isError) {
+                    var node = document.querySelector('#Ib3SectionStatus');
+
+                    node.textContent = message || '';
+                    node.className = 'ib3Status ' + (message ? (isError ? 'ib3Warning' : 'ib3Ok') : '');
                 }
 
                 function ib3PathStatus(message, isError) {
@@ -488,7 +562,7 @@
                     if (already) {
                         ib3SearchStatus('«' + title + '» ya está en la lista de programas.');
 
-                        return;
+                        return false;
                     }
 
                     Ib3.programs.push({
@@ -504,6 +578,120 @@
 
                     ib3RenderPrograms();
                     ib3SearchStatus('Añadido «' + title + '». Guarda la configuración para aplicarlo.');
+
+                    return true;
+                }
+
+                function ib3ProgramOnList(id, slug) {
+                    return Ib3.programs.some(function (program) {
+                        return (id && program.Id === id) || (!id && slug && program.Slug === slug);
+                    });
+                }
+
+                function ib3RenderSectionPrograms() {
+                    var body = document.querySelector('#Ib3SectionBody');
+                    var count = Ib3.sectionPrograms.length;
+
+                    body.innerHTML = '';
+                    document.querySelector('#Ib3SectionWrap').style.display = count ? '' : 'none';
+                    document.querySelector('#Ib3SectionToolbar').style.display = count ? '' : 'none';
+
+                    Ib3.sectionPrograms.forEach(function (program) {
+                        var onList = ib3ProgramOnList(program.Id, program.Slug);
+                        var row = ib3Element('tr');
+
+                        var titleCell = ib3Element('td');
+                        titleCell.appendChild(ib3Element('div', null, program.Title || '(sin título)'));
+                        titleCell.appendChild(ib3Element('div', 'ib3Mono', program.Id));
+                        row.appendChild(titleCell);
+
+                        row.appendChild(ib3Element('td', null, program.Category || '—'));
+                        row.appendChild(ib3Element('td', null, program.Subcategory || '—'));
+                        row.appendChild(ib3Element('td', 'ib3Mono', program.Slug || ''));
+
+                        var actionsCell = ib3Element('td');
+                        var add = ib3Element('button', 'raised', onList ? 'En la lista' : 'Añadir');
+                        add.setAttribute('is', 'emby-button');
+                        add.type = 'button';
+                        add.disabled = onList;
+                        add.addEventListener('click', function () {
+                            if (ib3AddProgram(program.Id, program.Slug, program.Title)) {
+                                ib3SectionStatus('Añadido «' + program.Title
+                                    + '». Guarda la configuración para aplicarlo.');
+                                ib3RenderSectionPrograms();
+                            }
+                        });
+                        actionsCell.appendChild(add);
+                        row.appendChild(actionsCell);
+
+                        body.appendChild(row);
+                    });
+                }
+
+                function ib3AddAllSectionPrograms() {
+                    var added = 0;
+
+                    Ib3.sectionPrograms.forEach(function (program) {
+                        if (!ib3ProgramOnList(program.Id, program.Slug)) {
+                            Ib3.programs.push({
+                                Id: program.Id,
+                                Slug: program.Slug,
+                                Title: program.Title,
+                                Reference: program.Slug || program.Id,
+                                CategoryOverride: '',
+                                WrittenPath: ''
+                            });
+                            added++;
+                        }
+                    });
+
+                    ib3RenderPrograms();
+                    ib3RenderSectionPrograms();
+                    ib3SectionStatus(added
+                        ? added + ' programa(s) añadidos a la lista. Guarda la configuración para aplicarlo.'
+                        : 'Todos los programas de la lista ya estaban añadidos.');
+                }
+
+                function ib3LoadSectionPrograms() {
+                    var section = ib3Text(document.querySelector('#Ib3SectionSelect').value);
+                    var subcategory = ib3Text(document.querySelector('#Ib3SubcategorySelect').value);
+
+                    Ib3.sectionPrograms = [];
+                    ib3RenderSectionPrograms();
+                    ib3SectionStatus('Consultando «' + section
+                        + (subcategory ? ' / ' + subcategory : '') + '» en IB3…');
+
+                    return ApiClient.ajax({
+                        type: 'GET',
+                        url: ib3Url('Programs/Section', {
+                            category: section,
+                            subcategory: subcategory,
+                            limit: 500
+                        }),
+                        dataType: 'json'
+                    }).then(function (programs) {
+                        Ib3.sectionPrograms = (programs || []).map(function (program) {
+                            return {
+                                Id: ib3Text(ib3Field(program, 'id')),
+                                Slug: ib3Text(ib3Field(program, 'slug')),
+                                Title: ib3Text(ib3Field(program, 'title')),
+                                Category: ib3Text(ib3Field(program, 'category')),
+                                Subcategory: ib3Text(ib3Field(program, 'subcategory'))
+                            };
+                        }).filter(function (program) {
+                            return program.Id.length > 0;
+                        });
+
+                        ib3RenderSectionPrograms();
+                        ib3SectionStatus(Ib3.sectionPrograms.length
+                            ? Ib3.sectionPrograms.length + ' programa(s) en «' + section
+                                + (subcategory ? ' / ' + subcategory : '') + '».'
+                            : 'La sección no publica programas en este momento.',
+                            Ib3.sectionPrograms.length === 0);
+                    }, function (reason) {
+                        ib3SectionStatus(ib3ErrorMessage(reason,
+                            'No se pudo consultar la sección en el catálogo de IB3.'), true);
+                    });
                 }
 
                 function ib3RenderResults(matches) {
@@ -703,7 +891,36 @@
                     });
                 }
 
+                function ib3KindAt(value) {
+                    return Ib3.kinds.filter(function (kind) {
+                        return ib3Text(ib3Field(kind, 'value')) === value;
+                    })[0];
+                }
+
+                function ib3FillSubcategories() {
+                    var select = document.querySelector('#Ib3SubcategorySelect');
+                    var kind = ib3KindAt(document.querySelector('#Ib3SectionSelect').value);
+                    var subcategories = (kind && ib3Field(kind, 'subcategories')) || [];
+
+                    select.innerHTML = '';
+
+                    var all = ib3Element('option', null, 'Toda la sección');
+                    all.value = '';
+                    select.appendChild(all);
+
+                    subcategories.forEach(function (subcategory) {
+                        var value = ib3Text(subcategory);
+                        var option = ib3Element('option', null, value);
+                        option.value = value;
+                        select.appendChild(option);
+                    });
+                }
+
                 function ib3LoadKinds() {
+                    var select = document.querySelector('#Ib3SectionSelect');
+
+                    Ib3.kinds = [];
+
                     return ApiClient.ajax({
                         type: 'GET',
                         url: ib3Url('Kinds'),
@@ -711,9 +928,20 @@
                     }).then(function (kinds) {
                         Ib3.kinds = kinds || [];
                     }, function () {
-                        // The layout is only needed to name the folders of the table: without it the
-                        // programs keep their automatic folder and the page still works.
+                        // The layout is only needed to name the folders of the table and the sections of the
+                        // pickers: without it the programs keep their automatic folder and the page works.
                         Ib3.kinds = [];
+                    }).then(function () {
+                        select.innerHTML = '';
+
+                        Ib3.kinds.forEach(function (kind) {
+                            var value = ib3Text(ib3Field(kind, 'value'));
+                            var option = ib3Element('option', null, ib3Text(ib3Field(kind, 'label')) || value);
+                            option.value = value;
+                            select.appendChild(option);
+                        });
+
+                        ib3FillSubcategories();
                     });
                 }
 
@@ -780,6 +1008,8 @@
                             ib3Field(config, 'deleteObsoleteFiles') !== false;
                         document.querySelector('#Ib3OrganizeByKind').checked =
                             ib3Field(config, 'organizeByKind') !== false;
+                        document.querySelector('#Ib3OrganizeBySubcategory').checked =
+                            ib3Field(config, 'organizeBySubcategory') !== false;
 
                         ib3RenderPrograms();
                         Dashboard.hideLoadingMsg();
@@ -800,6 +1030,7 @@
                         config.WriteArtwork = ib3Checkbox('Ib3WriteArtwork');
                         config.DeleteObsoleteFiles = ib3Checkbox('Ib3DeleteObsolete');
                         config.OrganizeByKind = ib3Checkbox('Ib3OrganizeByKind');
+                        config.OrganizeBySubcategory = ib3Checkbox('Ib3OrganizeBySubcategory');
                         // Every field the task reads is sent back, so a save from the page never drops the
                         // folder the last run wrote nor the reference of a program.
                         config.Programs = Ib3.programs.map(function (program) {
@@ -862,6 +1093,20 @@
                     document.querySelector('#Ib3CheckPath').addEventListener('click', ib3CheckPath);
                     document.querySelector('#Ib3CreateLibrary').addEventListener('click', ib3CreateLibrary);
                     document.querySelector('#Ib3RunNow').addEventListener('click', ib3RunNow);
+
+                    document.querySelector('#Ib3SectionSelect').addEventListener('change', ib3FillSubcategories);
+
+                    document.querySelector('#Ib3SectionButton').addEventListener('click', function () {
+                        Dashboard.showLoadingMsg();
+                        ib3LoadSectionPrograms().then(function () {
+                            Dashboard.hideLoadingMsg();
+                        }, function () {
+                            Dashboard.hideLoadingMsg();
+                        });
+                    });
+
+                    document.querySelector('#Ib3SectionAddAll').addEventListener('click',
+                        ib3AddAllSectionPrograms);
 
                     document.querySelector('#Ib3ConfigForm').addEventListener('submit', function (event) {
                         event.preventDefault();

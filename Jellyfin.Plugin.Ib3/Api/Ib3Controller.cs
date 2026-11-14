@@ -129,14 +129,67 @@ public sealed class Ib3Controller : ControllerBase
         => Ok(LibraryPath.Check(path));
 
     /// <summary>
-    /// Lists the folders of the layout, so the page names them from a single place.
+    /// Lists the sections of the platform and their subcategories, so the page names them from a single
+    /// place and never repeats the folders of the layout.
     /// </summary>
-    /// <returns>The folders of the kinds of program.</returns>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The sections of the layout, with the subcategories each one publishes.</returns>
     [HttpGet("Kinds")]
-    public ActionResult<IReadOnlyList<Ib3Kind>> ListKinds()
-        => Ok(LibraryCategory.All
-            .Select(kind => new Ib3Kind(kind, kind))
+    public async Task<ActionResult<IReadOnlyList<Ib3Kind>>> ListKindsAsync(CancellationToken cancellationToken)
+    {
+        var sections = await _client.GetCategoriesAsync(cancellationToken).ConfigureAwait(false);
+
+        return Ok(sections
+            .Select(section => new Ib3Kind(
+                section.Name,
+                section.Name,
+                [.. section.Subcategories.Select(subcategory => subcategory.Name)]))
             .ToList());
+    }
+
+    /// <summary>
+    /// Lists the programs a section of the platform publishes, so the page can add them without searching
+    /// one by one.
+    /// </summary>
+    /// <param name="category">Name or id of the section («Sèries», «Documentals»...).</param>
+    /// <param name="subcategory">Name or id of the subcategory, or empty for the whole section.</param>
+    /// <param name="limit">Maximum number of programs; 200 when omitted.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The programs, newest first; 400 when the section is not one of the eight of the platform.</returns>
+    [HttpGet("Programs/Section")]
+    public async Task<ActionResult<IReadOnlyList<Ib3SectionProgram>>> ListSectionProgramsAsync(
+        [FromQuery] string? category,
+        [FromQuery] string? subcategory,
+        [FromQuery] int limit,
+        CancellationToken cancellationToken)
+    {
+        var section = Ib3Categories.Find(category);
+        if (section is null)
+        {
+            return BadRequest("La sección no es una de las de totib3.org.");
+        }
+
+        var child = Ib3Categories.FindSubcategory(section, subcategory);
+
+        var programs = await _client
+            .GetCategoryProgramsAsync(
+                section.Id,
+                child?.Id,
+                limit <= 0 ? 200 : Math.Min(limit, 500),
+                cancellationToken)
+            .ConfigureAwait(false);
+
+        // A program with no id cannot be mirrored: the synchronization resolves the reference by the id.
+        return Ok(programs
+            .Where(program => !string.IsNullOrWhiteSpace(program.Id))
+            .Select(program => new Ib3SectionProgram(
+                program.Id!.Trim(),
+                program.Slug ?? string.Empty,
+                Ib3SyncService.SeriesTitle(program, new Ib3ProgramReference()),
+                Ib3Client.Ib3CategoryName(program),
+                Ib3Client.Ib3SubcategoryName(program)))
+            .ToList());
+    }
 
     /// <summary>
     /// Creates the library that indexes the destination folder, or adds the folder to the library that
@@ -243,8 +296,24 @@ public sealed record Ib3ProgramSummary(
     string Message);
 
 /// <summary>
-/// A folder of the layout the programs are written to.
+/// A section of the layout the programs are written to, with the subcategories it publishes.
 /// </summary>
-/// <param name="Value">Folder name, as stored in the configuration.</param>
+/// <param name="Value">Name of the section, as stored in the configuration.</param>
 /// <param name="Label">Name the page shows.</param>
-public sealed record Ib3Kind(string Value, string Label);
+/// <param name="Subcategories">Subcategories of the section, in the order of the platform.</param>
+public sealed record Ib3Kind(string Value, string Label, IReadOnlyList<string> Subcategories);
+
+/// <summary>
+/// A program a section of the platform publishes, as the page needs it to add it to the list.
+/// </summary>
+/// <param name="Id">Id of the program (the GUID of the API).</param>
+/// <param name="Slug">Slug of the public page.</param>
+/// <param name="Title">Title of the series the synchronization writes.</param>
+/// <param name="Category">Section of the platform the program is filed under.</param>
+/// <param name="Subcategory">Subcategory the program is filed under, or <c>null</c>.</param>
+public sealed record Ib3SectionProgram(
+    string Id,
+    string Slug,
+    string Title,
+    string? Category,
+    string? Subcategory);

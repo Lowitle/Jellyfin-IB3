@@ -1,7 +1,7 @@
 ---
 name: "IB3"
 guid: "6a1d7f43-9c2b-4e58-b0a4-3f7c1d9e5b28"
-version: "1.0.0.0"
+version: "1.1.0.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Crea una biblioteca de series con el catálogo a la carta de IB3 (.strm + metadatos + subtítulos)."
@@ -18,6 +18,16 @@ owner: "Lowitle"
 artifacts:
   - "Jellyfin.Plugin.Ib3.dll"
 changelog: >
+  1.1.0.0: la biblioteca sigue la taxonomía de la plataforma digital de IB3. Los programas se escriben en
+  una carpeta por cada sección de totib3.org —«Actualitat», «Retransmissions», «Sèries», «Cinema»,
+  «Documentals», «Programes», «Destacat» y «Arxiu»— y, dentro de ella, en la subcarpeta de la subcategoría
+  que IB3 les da, así que una biblioteca curada puede apuntar a «Documentals» o a «Arxiu» sin copiar un
+  solo archivo. Las secciones de audio del catálogo (los pódcast, que comparten nombre con tres secciones
+  de vídeo) se descartan por su id y su tipo, y los nombres antiguos de la configuración («Informatius»,
+  «Infantil»...) se siguen leyendo y se mapean a la sección que les corresponde. La página de configuración
+  lista las ocho secciones con sus subcategorías y los programas que publica cada una, de modo que se
+  pueden añadir en bloque en lugar de uno a uno, y una casilla nueva decide si la subcategoría se escribe
+  como subcarpeta.
   1.0.0.0: primera versión. Replica el catálogo a la carta de IB3 como biblioteca de series de Jellyfin.
   La página de configuración busca en el catálogo por título o por slug, resuelve la URL de cualquier
   programa de totib3.org y de cada resultado enseña el tipo de programa, la categoría de IB3, los vídeos

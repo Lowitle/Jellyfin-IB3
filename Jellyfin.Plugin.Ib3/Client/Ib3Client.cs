@@ -61,14 +61,18 @@ public sealed partial class Ib3Client : IDisposable
     }
 
     /// <summary>
-    /// Releases the lock that guards the catalog of programs.
+    /// Releases the locks that guard the catalog of programs and the sections of the platform.
     /// </summary>
     /// <remarks>
     /// The <see cref="HttpClient"/> is owned by <see cref="IHttpClientFactory"/> and it is never disposed
     /// here; only the <see cref="SemaphoreSlim"/> of the cached catalog is, so the analyzer that flags a
     /// disposable field on a non-disposable type stays happy.
     /// </remarks>
-    public void Dispose() => _catalogLock.Dispose();
+    public void Dispose()
+    {
+        _catalogLock.Dispose();
+        _categoriesLock.Dispose();
+    }
 
     /// <summary>
     /// Turns a URL of the API into an absolute one. IB3 publishes the media and artwork URLs with no

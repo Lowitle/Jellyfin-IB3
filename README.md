@@ -32,13 +32,25 @@ La página del plugin (**Panel de control → Plugins → IB3**) hace todo el re
    Jellyfin puede escribir en ella y, cuando no, qué carpetas escribibles hay en el servidor.
 2. **Biblioteca**: con la carpeta escrita, **Crear biblioteca** crea la biblioteca «IB3» (el nombre se puede
    cambiar) o añade la carpeta a la biblioteca que ya se llama así.
-3. **Programas**: busca por título o slug y elige el programa de los resultados; también se puede pegar la
+3. **Secciones**: la lista de secciones del catálogo («Actualitat», «Retransmissions», «Sèries», «Cinema»,
+   «Documentals», «Programes», «Destacat» y «Arxiu») con sus subcategorías. Al elegir una sección —o una de
+   sus subcategorías— la página enseña los programas que publica y se pueden añadir a la lista de uno en uno
+   o todos de golpe, sin buscarlos por su nombre.
+4. **Programas**: busca por título o slug y elige el programa de los resultados; también se puede pegar la
    dirección de su página de totib3.org. Antes de añadirlo se puede **probar**, y la página enseña cuántos
    vídeos publica IB3, cuántos se pueden añadir y cuántos han caducado. Cada programa puede fijar su propia
-   subcarpeta, y quitarlo de la lista borra su carpeta en la ejecución siguiente.
-4. **Opciones**: .nfo, subtítulos, imágenes, organización por tipo (una subcarpeta por tipo de programa) y
-   borrado de los archivos de los vídeos que IB3 ha despublicado.
-5. **Guardar** o **Ejecutar ahora**. La tarea programada repite la actualización cada N horas.
+   sección, y quitarlo de la lista borra su carpeta en la ejecución siguiente.
+5. **Opciones**: .nfo, subtítulos, imágenes, organización por sección (una subcarpeta por cada sección de
+   totib3.org), organización por subcategoría (una subcarpeta más dentro de la sección) y borrado de los
+   archivos de los vídeos que IB3 ha despublicado.
+6. **Guardar** o **Ejecutar ahora**. La tarea programada repite la actualización cada N horas.
+
+La biblioteca queda como en la plataforma digital de IB3: ocho carpetas de primer nivel, una por sección, y
+dentro la subcategoría cuando el programa la tiene (`Documentals/Història`, `Programes/IB3 Júnior`). Cuando
+IB3 publica un programa en dos secciones —cinco programas deportivos están en «Actualitat» y en
+«Programes»— manda el orden del menú, y la sección que se fije a mano en la página manda siempre sobre la
+del catálogo. Como Jellyfin indexa una carpeta en cada biblioteca que apunta a ella, se puede crear otra
+biblioteca «IB3 Documentals» que solo apunte a `Documentals` sin duplicar ni un archivo.
 
 La primera ejecución tarda lo que IB3 tarde en servir el catálogo de cada programa; las siguientes solo
 descargan las imágenes y los subtítulos que faltan.
@@ -65,6 +77,11 @@ tienen que decir lo mismo.
 - **Geobloqueo y caducidad**: si IB3 no publica MP4 de un vídeo, el plugin lo omite, lo anota en el registro
   y lo reintenta en la ejecución siguiente.
 - **Borrado**: el plugin solo borra carpetas que escribió él y cuyo `tvshow.nfo` lleva el id del programa.
+- **Actualizar desde la 1.0**: la primera ejecución reescribe cada serie en la carpeta de su sección (y de
+  su subcategoría) y borra la carpeta que escribió la vez anterior, que el plugin recuerda en `WrittenPath`;
+  las series antiguas no se duplican. Las carpetas del layout anterior (`Informatius`, `Infantil`,
+  `Esports`...) quedan vacías y se pueden borrar a mano, y los nombres antiguos de la configuración se
+  siguen leyendo: se mapean a la sección que les corresponde.
 
 ## Repositorio
 
@@ -72,6 +89,7 @@ tienen que decir lo mismo.
 | --- | --- |
 | `Directory.Build.props` | Versión del plugin (la leen el `.csproj`, `package.ps1` y el workflow de release). |
 | `Jellyfin.Plugin.Ib3.sln` | Solución con el único proyecto del plugin. |
+| `Jellyfin.Plugin.Ib3/Client/Ib3Categories.cs` | Tabla de las ocho secciones de totib3.org y sus subcategorías: es la fuente que nombra las carpetas. |
 | `package.ps1` | Compila en `Release` y deja `dist/ib3_<versión>.zip`. |
 | `scripts/Update-Manifest.ps1` | Inserta en `manifest.json` la versión con su MD5 y su `sourceUrl`. |
 | `scripts/Release.ps1` | Publica una versión: sube el número, empaqueta, actualiza el manifiesto, commitea y empuja el tag. |
