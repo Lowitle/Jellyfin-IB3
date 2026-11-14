@@ -74,10 +74,31 @@ tienen que decir lo mismo.
 | `Jellyfin.Plugin.Ib3.sln` | Solución con el único proyecto del plugin. |
 | `package.ps1` | Compila en `Release` y deja `dist/ib3_<versión>.zip`. |
 | `scripts/Update-Manifest.ps1` | Inserta en `manifest.json` la versión con su MD5 y su `sourceUrl`. |
+| `scripts/Release.ps1` | Publica una versión: sube el número, empaqueta, actualiza el manifiesto, commitea y empuja el tag. |
 | `build.yaml` | Ficha del plugin para las herramientas de empaquetado de Jellyfin. |
 | `.github/workflows/build.yaml` | Compila y publica el `.zip` como artefacto en cada push. |
 | `.github/workflows/release.yaml` | Con un tag `v*` (o a mano) comprueba la versión, empaqueta, actualiza `manifest.json`, crea la release de GitHub y hace commit del manifiesto. |
 
-Para publicar una versión: sube la versión en `Directory.Build.props` (y en `Properties/AssemblyInfo.cs`,
-`build.yaml` y `manifest.json`), y empuja un tag `v<versión>`. El workflow se encarga del resto.
+## Publicar una versión
+
+El repositorio publica cada versión en **Releases** y el `manifest.json` de `main` es el catálogo que
+Jellyfin lee, así que una versión nueva aparece en el panel de control de cualquier servidor que tenga el
+repositorio añadido (y en el resto, al recargar el catálogo).
+
+1. Escribe la entrada de la versión en `manifest.json` (`version` y `changelog`); el changelog se conserva
+   al publicar, así que es el sitio donde se explica el cambio. `targetAbi` es `10.11.0.0`.
+2. Lanza:
+
+```powershell
+./scripts/Release.ps1 -Version 1.1.0.0
+```
+
+El script sube el número en `Directory.Build.props`, `Properties/AssemblyInfo.cs` y `build.yaml`, compila,
+empaqueta, recalcula el MD5 de `manifest.json`, hace el commit, crea el tag `v1.1.0.0` y lo empuja. El tag
+dispara `.github/workflows/release.yaml`, que vuelve a compilar (en Linux, así que el binario no es el mismo
+que el local y el checksum del manifiesto se recalcula solo), crea la release con el `.zip`, refresca el
+manifiesto en `main` y lo commitea. Con `-NoPush` se puede ensayar sin publicar nada.
+
+También vale a mano: subir la versión en esos tres archivos y empujar el tag `v<versión>`.
+
 
