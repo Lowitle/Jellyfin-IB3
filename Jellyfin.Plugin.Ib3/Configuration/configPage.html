@@ -154,9 +154,17 @@
                         </label>
                         <input id="Ib3LibraryName" is="emby-input" type="text" placeholder="IB3" />
                         <div class="fieldDescription">
-                            La biblioteca se crea del tipo &laquo;Programas de TV&raquo; y apunta a la carpeta
-                            de destino; si ya existe una con este nombre, la carpeta se a&ntilde;ade a ella
-                            sin duplicar ning&uacute;n archivo.
+                            La biblioteca se crea del tipo &laquo;Programas de TV&raquo; y apunta a las ocho
+                            carpetas de las secciones (<span class="ib3Mono">Actualitat</span>,
+                            <span class="ib3Mono">S&egrave;ries</span>,
+                            <span class="ib3Mono">Documentals</span>&hellip;), no a la carpeta de destino:
+                            as&iacute; Jellyfin muestra cada secci&oacute;n como una carpeta y no sus nombres
+                            como si fueran series. Con la organizaci&oacute;n por secci&oacute;n desactivada
+                            apunta a la carpeta de destino. Si ya existe una biblioteca con este nombre se le
+                            a&ntilde;aden las carpetas que le falten y se le quitan las que la
+                            configuraci&oacute;n ya no escribe: la carpeta de destino cuando las ocho
+                            secciones est&aacute;n dentro, o las carpetas de las secciones cuando se
+                            desactiva la organizaci&oacute;n por secci&oacute;n.
                         </div>
                     </div>
 

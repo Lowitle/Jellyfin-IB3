@@ -147,6 +147,21 @@ internal static class LibraryCategory
         => Path.Combine(rootPath, category);
 
     /// <summary>
+    /// Builds the folders the «IB3» library indexes: one per section of the platform under the destination
+    /// folder.
+    /// </summary>
+    /// <param name="rootPath">Destination folder of the plugin.</param>
+    /// <returns>The folders of the sections, in the order of the menu of the site.</returns>
+    /// <remarks>
+    /// Each folder is a media path of the library: Jellyfin reads a folder that is not a media path of any
+    /// library as a plain folder of the library it hangs from, so a library that points at the destination
+    /// folder shows the eight section names as if they were series and mixes the subcategory folders with
+    /// them. Pointing at the folders of the sections keeps the layout of the platform in the library.
+    /// </remarks>
+    internal static IReadOnlyList<string> Sections(string rootPath)
+        => [.. All.Select(section => Folder(rootPath, section))];
+
+    /// <summary>
     /// Builds the folder a program is written to, with the subfolder of its subcategory when it has one.
     /// </summary>
     /// <param name="rootPath">Destination folder of the plugin.</param>

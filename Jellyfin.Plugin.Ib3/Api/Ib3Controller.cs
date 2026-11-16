@@ -192,8 +192,8 @@ public sealed class Ib3Controller : ControllerBase
     }
 
     /// <summary>
-    /// Creates the library that indexes the destination folder, or adds the folder to the library that
-    /// already has the same name.
+    /// Creates the library that indexes the folders of the layout, or completes the library that already
+    /// indexes them.
     /// </summary>
     /// <param name="path">Destination folder; the configured one when omitted.</param>
     /// <param name="name">Library name; «IB3» when omitted.</param>
@@ -212,7 +212,8 @@ public sealed class Ib3Controller : ControllerBase
             root,
             string.IsNullOrWhiteSpace(name) ? configuration.LibraryName : name,
             _logger,
-            _libraryMonitor);
+            _libraryMonitor,
+            configuration.OrganizeByKind);
 
         if (status.Success)
         {

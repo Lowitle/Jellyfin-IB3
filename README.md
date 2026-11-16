@@ -31,7 +31,10 @@ La página del plugin (**Panel de control → Plugins → IB3**) hace todo el re
 1. **Carpeta de destino**: escribe la ruta y pulsa **Comprobar**. La página dice si la carpeta existe, si
    Jellyfin puede escribir en ella y, cuando no, qué carpetas escribibles hay en el servidor.
 2. **Biblioteca**: con la carpeta escrita, **Crear biblioteca** crea la biblioteca «IB3» (el nombre se puede
-   cambiar) o añade la carpeta a la biblioteca que ya se llama así.
+   cambiar) con las ocho carpetas de las secciones como carpetas de la biblioteca —no la carpeta de
+   destino—, o ajusta la biblioteca que ya se llama así: le añade las carpetas que le falten y le quita las
+   que la configuración ya no escribe. Así la biblioteca que creó la versión 1.1.0.0 (que apuntaba a la
+   carpeta de destino) pasa a indexar las secciones con un clic, sin deshacerla a mano.
 3. **Secciones**: la lista de secciones del catálogo («Actualitat», «Retransmissions», «Sèries», «Cinema»,
    «Documentals», «Programes», «Destacat» y «Arxiu») con sus subcategorías. Al elegir una sección —o una de
    sus subcategorías— la página enseña los programas que publica y se pueden añadir a la lista de uno en uno
@@ -46,11 +49,13 @@ La página del plugin (**Panel de control → Plugins → IB3**) hace todo el re
 6. **Guardar** o **Ejecutar ahora**. La tarea programada repite la actualización cada N horas.
 
 La biblioteca queda como en la plataforma digital de IB3: ocho carpetas de primer nivel, una por sección, y
-dentro la subcategoría cuando el programa la tiene (`Documentals/Història`, `Programes/IB3 Júnior`). Cuando
-IB3 publica un programa en dos secciones —cinco programas deportivos están en «Actualitat» y en
-«Programes»— manda el orden del menú, y la sección que se fije a mano en la página manda siempre sobre la
-del catálogo. Como Jellyfin indexa una carpeta en cada biblioteca que apunta a ella, se puede crear otra
-biblioteca «IB3 Documentals» que solo apunte a `Documentals` sin duplicar ni un archivo.
+dentro la subcategoría cuando el programa la tiene (`Documentals/Història`, `Programes/IB3 Júnior`). Las ocho
+carpetas son las rutas de la biblioteca, no la carpeta de destino: si la biblioteca apuntara a la carpeta
+madre, Jellyfin leería cada nombre de sección como si fuera una serie y las carpetas de las subcategorías se
+mezclarían con ellas. Cuando IB3 publica un programa en dos secciones —cinco programas deportivos están en
+«Actualitat» y en «Programes»— manda el orden del menú, y la sección que se fije a mano en la página manda
+siempre sobre la del catálogo. Como Jellyfin indexa una carpeta en cada biblioteca que apunta a ella, se
+puede crear otra biblioteca «IB3 Documentals» que solo apunte a `Documentals` sin duplicar ni un archivo.
 
 La primera ejecución tarda lo que IB3 tarde en servir el catálogo de cada programa; las siguientes solo
 descargan las imágenes y los subtítulos que faltan.

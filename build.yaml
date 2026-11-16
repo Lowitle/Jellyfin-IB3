@@ -1,7 +1,7 @@
 ---
 name: "IB3"
 guid: "6a1d7f43-9c2b-4e58-b0a4-3f7c1d9e5b28"
-version: "1.1.0.0"
+version: "1.1.1.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Crea una biblioteca de series con el catálogo a la carta de IB3 (.strm + metadatos + subtítulos)."
@@ -18,6 +18,14 @@ owner: "Lowitle"
 artifacts:
   - "Jellyfin.Plugin.Ib3.dll"
 changelog: >
+  1.1.1.0: la biblioteca «IB3» pasa a apuntar a cada una de las ocho carpetas de sección en lugar de a la
+  carpeta de destino, que era lo que hacía que Jellyfin mostrara «Sèries», «Documentals» o «Arxiu» como si
+  fueran series y mezclara con ellas las carpetas de las subcategorías. La biblioteca se crea con las ocho
+  rutas de una vez y, al volver a pulsar «Crear biblioteca» sobre la que creó la 1.1.0.0, se le añaden las
+  carpetas que le falten y se le quita la carpeta de destino, así que la migración es un clic y no hay que
+  borrar la biblioteca a mano: Jellyfin vuelve a indexar cada serie desde la carpeta de su sección. Con la
+  organización por sección desactivada la biblioteca vuelve a apuntar solo a la carpeta de destino y deja de
+  indexar las carpetas de las secciones, que es donde se escriben entonces los programas.
   1.1.0.0: la biblioteca sigue la taxonomía de la plataforma digital de IB3. Los programas se escriben en
   una carpeta por cada sección de totib3.org —«Actualitat», «Retransmissions», «Sèries», «Cinema»,
   «Documentals», «Programes», «Destacat» y «Arxiu»— y, dentro de ella, en la subcarpeta de la subcategoría
