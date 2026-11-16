@@ -1,36 +1,36 @@
 [
 {
-    "guid":  "6a1d7f43-9c2b-4e58-b0a4-3f7c1d9e5b28",
-    "name":  "IB3",
-    "description":  "Genera una biblioteca de series a partir del catálogo a la carta de IB3 (.strm + metadatos + subtítulos), con una carpeta por sección y subcategoría de totib3.org.",
-    "overview":  "Replica el catálogo de IB3 como biblioteca de series de Jellyfin mediante archivos .strm, con metadatos .nfo, carátulas y subtítulos SRT convertidos desde los WebVTT originales, organizada en las secciones de totib3.org y sus subcategorías.",
-    "owner":  "Lowitle",
-    "category":  "General",
-    "versions":  [
-                     {
-                         "version":  "1.1.1.0",
-                         "changelog":  "La biblioteca «IB3» apunta ahora a cada una de las ocho carpetas de sección («Actualitat», «Retransmissions», «Sèries», «Cinema», «Documentals», «Programes», «Destacat» y «Arxiu») y no a la carpeta de destino, así que Jellyfin muestra cada sección como una carpeta en lugar de leer sus nombres como si fueran series y mezclar con ellas las subcarpetas de las subcategorías. La biblioteca se crea con las ocho rutas de una vez y, al volver a pulsar «Crear biblioteca», se le añaden las carpetas que le falten y se le quitan las que la configuración ya no escribe: la que creó la 1.1.0.0 sobre la carpeta de destino pasa a indexar las secciones con un clic, y al desactivar la organización por sección la biblioteca vuelve a la carpeta de destino y deja de indexar las secciones, así que los programas no se leen dos veces.",
-                         "targetAbi":  "10.11.0.0",
-                         "sourceUrl":  "https://github.com/Lowitle/Jellyfin-IB3/releases/download/v1.1.1.0/ib3_1.1.1.0.zip",
-                         "checksum":  "6636CEE3BB64D7B0172DB716955026C5",
-                         "timestamp":  "2026-11-16T17:41:59Z"
-                     },
-                     {
-                         "version":  "1.1.0.0",
-                         "changelog":  "La biblioteca replica ahora la plataforma digital de totib3.org: ocho secciones de vídeo («Actualitat», «Retransmissions», «Sèries», «Cinema», «Documentals», «Programes», «Destacat» y «Arxiu») y, dentro de cada sección, sus subcategorías («Documentals/Història», «Programes/IB3 Júnior»), así que una biblioteca secundaria puede apuntar a una sola sección sin duplicar archivos. Las categorías de audio del catálogo se descartan por su id y su tipo, y un programa publicado en dos secciones va a la primera del menú salvo que se le fije otra a mano. La página de configuración lista las secciones con sus subcategorías y los programas que publica cada una, y los añade a la lista de uno en uno o todos de golpe, sin buscarlos por su nombre. La primera ejecución reescribe cada serie en su carpeta nueva y borra la que escribió la vez anterior, así que actualizar desde la 1.0 no duplica nada; los nombres antiguos de la configuración («Informatius», «Infantil»...) se siguen leyendo y se mapean a su sección, y las carpetas del layout anterior quedan vacías y se pueden borrar a mano.",
-                         "targetAbi":  "10.11.0.0",
-                         "sourceUrl":  "https://github.com/Lowitle/Jellyfin-IB3/releases/download/v1.1.0.0/ib3_1.1.0.0.zip",
-                         "checksum":  "9B2DE7CC3823308908012CF638C49D81",
-                         "timestamp":  "2026-11-15T06:28:09Z"
-                     },
-                     {
-                         "version":  "1.0.0.0",
-                         "changelog":  "Primera versión. Replica el catálogo a la carta de IB3 como biblioteca de series de Jellyfin: busca los programas por título o slug en el catálogo, resuelve la URL de cualquier programa de totib3.org y enseña cuántos vídeos publica, cuántos se pueden añadir y cuántos han caducado antes de añadirlo. Cada programa se escribe como .strm con la URL del MP4 progresivo, con un .nfo por episodio y un tvshow.nfo con el id del programa, la carátula, el fondo y sus géneros, la miniatura de cada episodio y los subtítulos convertidos de WebVTT a SRT; la numeración de IB3 manda cuando es un número y los vídeos caducados se omiten. La página comprueba la carpeta de destino, crea la biblioteca que la indexa, organiza los programas por tipo en subcarpetas o los deja en la carpeta madre, permite fijar la carpeta de cada programa y lanza la actualización, que también se ejecuta cada N horas con la tarea programada.",
-                         "targetAbi":  "10.11.0.0",
-                         "sourceUrl":  "https://github.com/Lowitle/Jellyfin-IB3/releases/download/v1.0.0.0/ib3_1.0.0.0.zip",
-                         "checksum":  "311587753D9DB908B92161F4DCA5509D",
-                         "timestamp":  "2026-11-14T18:15:45Z"
-                     }
-                 ]
+  "guid": "6a1d7f43-9c2b-4e58-b0a4-3f7c1d9e5b28",
+  "name": "IB3",
+  "description": "Genera una biblioteca de series a partir del catálogo a la carta de IB3 (.strm + metadatos + subtítulos), con una carpeta por sección y subcategoría de totib3.org.",
+  "overview": "Replica el catálogo de IB3 como biblioteca de series de Jellyfin mediante archivos .strm, con metadatos .nfo, carátulas y subtítulos SRT convertidos desde los WebVTT originales, organizada en las secciones de totib3.org y sus subcategorías.",
+  "owner": "Lowitle",
+  "category": "General",
+  "versions": [
+    {
+      "version": "1.1.1.0",
+      "changelog": "La biblioteca «IB3» apunta ahora a cada una de las ocho carpetas de sección («Actualitat», «Retransmissions», «Sèries», «Cinema», «Documentals», «Programes», «Destacat» y «Arxiu») y no a la carpeta de destino, así que Jellyfin muestra cada sección como una carpeta en lugar de leer sus nombres como si fueran series y mezclar con ellas las subcarpetas de las subcategorías. La biblioteca se crea con las ocho rutas de una vez y, al volver a pulsar «Crear biblioteca», se le añaden las carpetas que le falten y se le quitan las que la configuración ya no escribe: la que creó la 1.1.0.0 sobre la carpeta de destino pasa a indexar las secciones con un clic, y al desactivar la organización por sección la biblioteca vuelve a la carpeta de destino y deja de indexar las secciones, así que los programas no se leen dos veces.",
+      "targetAbi": "10.11.0.0",
+      "sourceUrl": "https://github.com/Lowitle/Jellyfin-IB3/releases/download/v1.1.1.0/ib3_1.1.1.0.zip",
+      "checksum": "DFED0E166B53AAEE1B43B1B696E4E33D",
+      "timestamp": "2026-11-16T17:42:33Z"
+    },
+    {
+      "version": "1.1.0.0",
+      "changelog": "La biblioteca replica ahora la plataforma digital de totib3.org: ocho secciones de vídeo («Actualitat», «Retransmissions», «Sèries», «Cinema», «Documentals», «Programes», «Destacat» y «Arxiu») y, dentro de cada sección, sus subcategorías («Documentals/Història», «Programes/IB3 Júnior»), así que una biblioteca secundaria puede apuntar a una sola sección sin duplicar archivos. Las categorías de audio del catálogo se descartan por su id y su tipo, y un programa publicado en dos secciones va a la primera del menú salvo que se le fije otra a mano. La página de configuración lista las secciones con sus subcategorías y los programas que publica cada una, y los añade a la lista de uno en uno o todos de golpe, sin buscarlos por su nombre. La primera ejecución reescribe cada serie en su carpeta nueva y borra la que escribió la vez anterior, así que actualizar desde la 1.0 no duplica nada; los nombres antiguos de la configuración («Informatius», «Infantil»...) se siguen leyendo y se mapean a su sección, y las carpetas del layout anterior quedan vacías y se pueden borrar a mano.",
+      "targetAbi": "10.11.0.0",
+      "sourceUrl": "https://github.com/Lowitle/Jellyfin-IB3/releases/download/v1.1.0.0/ib3_1.1.0.0.zip",
+      "checksum": "9B2DE7CC3823308908012CF638C49D81",
+      "timestamp": "2026-11-15T06:28:09Z"
+    },
+    {
+      "version": "1.0.0.0",
+      "changelog": "Primera versión. Replica el catálogo a la carta de IB3 como biblioteca de series de Jellyfin: busca los programas por título o slug en el catálogo, resuelve la URL de cualquier programa de totib3.org y enseña cuántos vídeos publica, cuántos se pueden añadir y cuántos han caducado antes de añadirlo. Cada programa se escribe como .strm con la URL del MP4 progresivo, con un .nfo por episodio y un tvshow.nfo con el id del programa, la carátula, el fondo y sus géneros, la miniatura de cada episodio y los subtítulos convertidos de WebVTT a SRT; la numeración de IB3 manda cuando es un número y los vídeos caducados se omiten. La página comprueba la carpeta de destino, crea la biblioteca que la indexa, organiza los programas por tipo en subcarpetas o los deja en la carpeta madre, permite fijar la carpeta de cada programa y lanza la actualización, que también se ejecuta cada N horas con la tarea programada.",
+      "targetAbi": "10.11.0.0",
+      "sourceUrl": "https://github.com/Lowitle/Jellyfin-IB3/releases/download/v1.0.0.0/ib3_1.0.0.0.zip",
+      "checksum": "311587753D9DB908B92161F4DCA5509D",
+      "timestamp": "2026-11-14T18:15:45Z"
+    }
+  ]
 }
 ]
