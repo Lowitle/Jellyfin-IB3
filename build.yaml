@@ -1,7 +1,7 @@
 ---
 name: "IB3"
 guid: "6a1d7f43-9c2b-4e58-b0a4-3f7c1d9e5b28"
-version: "1.1.1.0"
+version: "1.2.0.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Crea una biblioteca de series con el catálogo a la carta de IB3 (.strm + metadatos + subtítulos)."
