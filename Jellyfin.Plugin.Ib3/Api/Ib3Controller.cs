@@ -228,6 +228,103 @@ public sealed class Ib3Controller : ControllerBase
     }
 
     /// <summary>
+    /// Lists the section folders of the destination and the libraries of the server, so the page can add a
+    /// section to a library the user already has.
+    /// </summary>
+    /// <remarks>
+    /// The sections are always listed, even with the layout off: the table then shows the folders the
+    /// library indexes with «Separar los programas en carpetas por sección» enabled.
+    /// </remarks>
+    /// <param name="path">Destination folder; the configured one when omitted.</param>
+    /// <param name="name">Library name; the configured one when omitted.</param>
+    /// <param name="bySection">Whether the synchronization writes a folder per section.</param>
+    /// <returns>The section folders and the libraries of the server.</returns>
+    [HttpGet("Library/Folders")]
+    public ActionResult<LibrarySectionMatrix> GetLibraryFolders(
+        [FromQuery] string? path,
+        [FromQuery] string? name,
+        [FromQuery] bool? bySection)
+    {
+        var configuration = Plugin.Instance?.Configuration ?? new PluginConfiguration();
+        var target = string.IsNullOrWhiteSpace(path) ? configuration.DestinationPath : path.Trim();
+        var folder = LibraryIO.Normalize(target);
+
+        if (folder is null)
+        {
+            return BadRequest("Escribe la carpeta de destino antes de ver las secciones y las bibliotecas.");
+        }
+
+        return Ok(LibrarySections.Describe(
+            folder,
+            string.IsNullOrWhiteSpace(name) ? configuration.LibraryName : name,
+            bySection ?? configuration.OrganizeByKind,
+            LibrarySections.ToLibraries(_libraryManager.GetVirtualFolders() ?? [])));
+    }
+
+    /// <summary>
+    /// Adds the folder of a section to a library of the server.
+    /// </summary>
+    /// <remarks>
+    /// The folder is not removed from the library of the plugin: Jellyfin indexes it in both libraries. The
+    /// status is always returned with HTTP 200 and a <c>success</c> flag, so the page can show the reason of
+    /// a rejection instead of a generic error.
+    /// </remarks>
+    /// <param name="folder">Folder of the section, as the table of the page read it.</param>
+    /// <param name="library">Library that has to index the folder.</param>
+    /// <param name="path">Destination folder; the configured one when omitted.</param>
+    /// <returns>The result of the operation.</returns>
+    [HttpPost("Library/Associate")]
+    public ActionResult<LibraryLinkStatus> AssociateSection(
+        [FromQuery] string? folder,
+        [FromQuery] string? library,
+        [FromQuery] string? path)
+    {
+        var configuration = Plugin.Instance?.Configuration ?? new PluginConfiguration();
+        var root = LibraryIO.Normalize(string.IsNullOrWhiteSpace(path) ? configuration.DestinationPath : path);
+        var target = LibraryIO.Normalize(folder);
+
+        if (root is null)
+        {
+            return Ok(new LibraryLinkStatus(
+                false,
+                "invalid",
+                target ?? folder?.Trim() ?? string.Empty,
+                library,
+                "Escribe la carpeta de destino antes de añadir una sección a otra biblioteca."));
+        }
+
+        // Only a folder of the layout can be added: the endpoint must not become a way to attach any folder
+        // of the server to a library behind the back of the «Add media library» wizard.
+        if (target is null
+            || !LibraryCategory.Sections(root).Any(section => LibraryPath.SamePath(section, target)))
+        {
+            return Ok(new LibraryLinkStatus(
+                false,
+                "invalid",
+                target ?? folder?.Trim() ?? string.Empty,
+                library,
+                "La carpeta no es una de las secciones de IB3: elige una fila de la tabla."));
+        }
+
+        var status = LibrarySections.Associate(_libraryManager, target, library, _logger, _libraryMonitor);
+
+        if (status.Success)
+        {
+            _logger.LogInformation(
+                "IB3: sección {Folder} → biblioteca {Library} ({Outcome})",
+                status.Folder,
+                status.LibraryName,
+                status.Outcome);
+        }
+        else
+        {
+            _logger.LogWarning("IB3: no se pudo añadir la sección a la biblioteca: {Message}", status.Message);
+        }
+
+        return Ok(status);
+    }
+
+    /// <summary>
     /// Applies the configured refresh interval to the scheduled task.
     /// </summary>
     /// <returns>No content.</returns>

@@ -85,6 +85,41 @@
                 font-size: 0.9em;
             }
 
+            /* «Secciones y bibliotecas»: one row per section and a combo with the libraries of the
+               server. It stays hidden until the user opens it, so the page keeps its length. */
+            #Ib3ConfigPage .ib3LibraryPanel {
+                display: none;
+                margin: 0.6em 0 1em;
+                padding: 0.8em 1em;
+                border: 1px solid rgba(128, 128, 128, 0.35);
+                border-radius: 0.3em;
+            }
+
+            #Ib3ConfigPage .ib3LibraryPanel.ib3Visible {
+                display: block;
+            }
+
+            #Ib3ConfigPage .ib3LibraryPanel .sectionTitle {
+                margin: 0 0 0.3em;
+                font-size: 1.1em;
+            }
+
+            #Ib3ConfigPage .ib3LibraryPanel table.ib3Table {
+                margin-top: 0.4em;
+            }
+
+            #Ib3ConfigPage .ib3LibraryPanel table.ib3Table select {
+                min-width: 12em;
+            }
+
+            /* The combo and the button of a row: no margins, so the table keeps its rhythm. */
+            #Ib3ConfigPage .ib3LibraryChooser {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.4em;
+                align-items: center;
+            }
+
             #Ib3ConfigPage .ib3Status {
                 min-height: 1.4em;
                 margin-top: 0.6em;
@@ -170,6 +205,27 @@
 
                     <div id="Ib3PathStatus" class="ib3Status"></div>
                     <div id="Ib3LibraryStatus" class="ib3Status"></div>
+                </div>
+
+                <div class="verticalSection">
+                    <h2 class="sectionTitle">Secciones y bibliotecas</h2>
+                    <p class="fieldDescription">
+                        Jellyfin puede indexar la misma carpeta en varias bibliotecas: a&ntilde;adir una
+                        secci&oacute;n a otra biblioteca no la quita de &laquo;IB3&raquo;. Cada fila de la
+                        tabla es la carpeta de una secci&oacute;n de totib3.org; el desplegable de la
+                        &uacute;ltima columna a&ntilde;ade esa carpeta, con todo lo que escribe la
+                        sincronizaci&oacute;n dentro de ella, a la biblioteca que elijas.
+                    </p>
+
+                    <div class="ib3Toolbar">
+                        <button id="Ib3LibraryMatrixToggle" is="emby-button" type="button" class="raised">
+                            <span>Ver secciones y bibliotecas</span>
+                        </button>
+                        <span class="ib3Muted">Usa la carpeta de destino escrita arriba.</span>
+                    </div>
+
+                    <div id="Ib3LibraryMatrixStatus" class="ib3Status"></div>
+                    <div id="Ib3LibraryMatrixPanel" class="ib3LibraryPanel"></div>
                 </div>
 
                 <div class="verticalSection">
@@ -464,6 +520,13 @@
 
                 function ib3LibraryStatus(message, isError) {
                     var node = document.querySelector('#Ib3LibraryStatus');
+
+                    node.textContent = message || '';
+                    node.className = 'ib3Status ' + (message ? (isError ? 'ib3Warning' : 'ib3Ok') : '');
+                }
+
+                function ib3LibraryMatrixStatus(message, isError) {
+                    var node = document.querySelector('#Ib3LibraryMatrixStatus');
 
                     node.textContent = message || '';
                     node.className = 'ib3Status ' + (message ? (isError ? 'ib3Warning' : 'ib3Ok') : '');
@@ -893,9 +956,258 @@
                         var message = ib3Text(ib3Field(status, 'message'));
 
                         ib3LibraryStatus(message || (success ? 'Biblioteca preparada.' : 'No se pudo preparar la biblioteca.'), !success);
+
+                        // The table of sections and libraries owns the same folders the button just added.
+                        ib3ReloadLibraryMatrix();
                     }, function (reason) {
                         Dashboard.hideLoadingMsg();
                         ib3LibraryStatus(ib3ErrorMessage(reason, 'No se pudo preparar la biblioteca.'), true);
+                    });
+                }
+
+                // --- Sections and libraries -------------------------------------------------------
+                // The sections are not exclusive: Jellyfin indexes a folder in every library that points
+                // at it, so one section can be added to a library of the user and still be part of «IB3».
+
+                function ib3LibraryMatrixPanel() {
+                    return document.querySelector('#Ib3LibraryMatrixPanel');
+                }
+
+                function ib3ToggleLibraryMatrix() {
+                    var panel = ib3LibraryMatrixPanel();
+
+                    if (!panel) {
+                        return;
+                    }
+
+                    if (panel.className.indexOf('ib3Visible') !== -1) {
+                        panel.className = 'ib3LibraryPanel';
+                        return;
+                    }
+
+                    panel.className = 'ib3LibraryPanel ib3Visible';
+                    ib3LoadLibraryMatrix();
+                }
+
+                function ib3ReloadLibraryMatrix() {
+                    var panel = ib3LibraryMatrixPanel();
+
+                    if (panel && panel.className.indexOf('ib3Visible') !== -1) {
+                        ib3LoadLibraryMatrix();
+                    }
+                }
+
+                function ib3LoadLibraryMatrix() {
+                    var panel = ib3LibraryMatrixPanel();
+                    var path = ib3Path();
+                    var name = ib3Text(document.querySelector('#Ib3LibraryName').value);
+
+                    if (!path) {
+                        panel.textContent = 'Escribe la carpeta de destino para ver las secciones y las bibliotecas.';
+                        return;
+                    }
+
+                    Dashboard.showLoadingMsg();
+                    ApiClient.getJSON(ib3Url('Library/Folders', {
+                        path: path,
+                        name: name,
+                        bySection: ib3Checkbox('Ib3OrganizeByKind') ? 'true' : 'false'
+                    })).then(function (result) {
+                        Dashboard.hideLoadingMsg();
+                        ib3RenderLibraryMatrix(result);
+                    }, function (reason) {
+                        Dashboard.hideLoadingMsg();
+                        panel.textContent = ib3ErrorMessage(
+                            reason,
+                            'No se pudieron leer las secciones ni las bibliotecas del servidor.');
+                    });
+                }
+
+                function ib3RenderLibraryMatrix(result) {
+                    var panel = ib3LibraryMatrixPanel();
+                    var folders = ib3Field(result, 'folders') || [];
+                    var libraries = ib3Field(result, 'libraries') || [];
+                    var libraryName = ib3Text(ib3Field(result, 'libraryName')) || 'IB3';
+                    var missing = ib3Field(result, 'missing') || [];
+                    var bySection = ib3Field(result, 'bySection') !== false;
+                    var target = ib3Text(ib3Field(result, 'path'));
+
+                    panel.innerHTML = '';
+
+                    panel.appendChild(ib3Element('h3', 'sectionTitle', 'Secciones y bibliotecas'));
+                    panel.appendChild(ib3Element(
+                        'div',
+                        'fieldDescription',
+                        'Jellyfin puede indexar la misma carpeta en varias bibliotecas: a\u00f1adir una '
+                            + 'secci\u00f3n a otra biblioteca no la quita de «' + libraryName
+                            + '». Para quitarla, usa Panel → Bibliotecas.'));
+
+                    if (!bySection) {
+                        panel.appendChild(ib3Element(
+                            'div',
+                            'fieldDescription',
+                            'Con «Separar los programas en carpetas por secci\u00f3n» desactivado, la '
+                                + 'biblioteca indexa la carpeta de destino entera; las carpetas de abajo '
+                                + 'son las que se usan al activarlo.'));
+                    } else if (missing.length > 0) {
+                        panel.appendChild(ib3Element(
+                            'div',
+                            'fieldDescription ib3Warning',
+                            'A la biblioteca «' + libraryName + '» le faltan ' + missing.length
+                                + ' carpetas (' + missing.join(', ') + '). Pulsa «Crear biblioteca» para '
+                                + 'a\u00f1adirlas todas.'));
+                    }
+
+                    var wrap = ib3Element('div');
+                    var table = ib3Element('table', 'ib3Table');
+                    var head = ib3Element('thead');
+                    var headRow = ib3Element('tr');
+                    var titles = [
+                        'Secci\u00f3n',
+                        'En «' + libraryName + '»',
+                        'Bibliotecas que la contienen',
+                        'A\u00f1adir a una biblioteca'
+                    ];
+
+                    titles.forEach(function (title) {
+                        headRow.appendChild(ib3Element('th', null, title));
+                    });
+
+                    head.appendChild(headRow);
+                    table.appendChild(head);
+
+                    var body = ib3Element('tbody');
+                    folders.forEach(function (folder) {
+                        body.appendChild(ib3LibraryMatrixRow(folder, libraries));
+                    });
+                    table.appendChild(body);
+                    wrap.appendChild(table);
+                    panel.appendChild(wrap);
+
+                    panel.appendChild(ib3Element(
+                        'div',
+                        'fieldDescription',
+                        'Carpeta de destino: «' + target + '». Los cambios se aplican al momento; '
+                            + 'Jellyfin revisa la carpeta a\u00f1adida en el siguiente an\u00e1lisis.'));
+                }
+
+                function ib3LibraryMatrixRow(folder, libraries) {
+                    var row = ib3Element('tr');
+                    var path = ib3Text(ib3Field(folder, 'path'));
+                    var section = ib3Text(ib3Field(folder, 'section'));
+                    var exists = ib3Field(folder, 'exists') === true;
+                    var covered = ib3Field(folder, 'covered') === true;
+                    var owners = ib3Field(folder, 'libraries') || [];
+
+                    var nameCell = ib3Element('td', null, section);
+                    nameCell.appendChild(ib3Element(
+                        'div',
+                        'ib3Mono',
+                        path + (exists ? '' : ' · todavía no existe')));
+                    row.appendChild(nameCell);
+
+                    row.appendChild(ib3Element('td', covered ? null : 'ib3Warning', covered ? 'Sí' : 'No'));
+                    row.appendChild(ib3Element(
+                        'td',
+                        owners.length > 0 ? null : 'ib3Muted',
+                        owners.length > 0 ? owners.join(' · ') : '—'));
+
+                    var cell = ib3Element('td');
+                    cell.appendChild(ib3LibraryChooser(path, libraries));
+                    row.appendChild(cell);
+
+                    return row;
+                }
+
+                // A <select> with the libraries of the server and a button next to it: the combo chooses,
+                // «Añadir» is what touches Jellyfin, so a miss-click does not change a library.
+                function ib3LibraryChooser(folderPath, libraries) {
+                    var chooser = ib3Element('div', 'ib3LibraryChooser');
+                    var names = libraries.filter(function (library) {
+                        return !!ib3Text(ib3Field(library, 'name'));
+                    });
+
+                    var select = ib3Element('select', 'emby-select-withcolor');
+                    select.setAttribute('is', 'emby-select');
+
+                    var placeholder = ib3Element(
+                        'option',
+                        null,
+                        names.length > 0 ? 'Elegir biblioteca…' : 'No hay bibliotecas');
+                    placeholder.value = '';
+                    select.appendChild(placeholder);
+
+                    names.forEach(function (library) {
+                        var name = ib3Text(ib3Field(library, 'name'));
+                        var type = ib3Text(ib3Field(library, 'type')) || 'sin tipo';
+                        var option = ib3Element('option', null, name + ' · ' + type);
+
+                        option.value = name;
+                        select.appendChild(option);
+                    });
+
+                    select.disabled = names.length === 0;
+
+                    var add = ib3Element('button', 'raised', 'Añadir');
+                    add.type = 'button';
+                    add.disabled = names.length === 0;
+                    add.addEventListener('click', function () {
+                        var library = ib3Text(select.value);
+
+                        if (!library) {
+                            ib3LibraryMatrixStatus(
+                                'Elige la biblioteca a la que quieres añadir «'
+                                    + folderPath.split(/[\\/]/).pop() + '».',
+                                true);
+                            return;
+                        }
+
+                        ib3AssociateSection(folderPath, library, select);
+                    });
+
+                    chooser.appendChild(select);
+                    chooser.appendChild(add);
+
+                    return chooser;
+                }
+
+                function ib3AssociateSection(folder, library, select) {
+                    Dashboard.showLoadingMsg();
+                    ib3LibraryMatrixStatus('Añadiendo la sección a la biblioteca…', false);
+
+                    ApiClient.ajax({
+                        type: 'POST',
+                        url: ib3Url('Library/Associate', {
+                            folder: folder,
+                            library: library,
+                            path: ib3Path()
+                        }),
+                        dataType: 'json'
+                    }).then(function (status) {
+                        Dashboard.hideLoadingMsg();
+
+                        var success = ib3Field(status, 'success') === true;
+                        var message = ib3Text(ib3Field(status, 'message'));
+
+                        ib3LibraryMatrixStatus(
+                            message || (success ? 'Sección añadida.' : 'No se pudo añadir la sección.'),
+                            !success);
+
+                        if (select) {
+                            select.value = '';
+                        }
+
+                        // The owners of the folder change with the association, so the table is read again.
+                        ib3LoadLibraryMatrix();
+                    }, function (reason) {
+                        Dashboard.hideLoadingMsg();
+                        ib3LibraryMatrixStatus(
+                            ib3ErrorMessage(reason, 'No se pudo añadir la sección a la biblioteca.'),
+                            true);
+
+                        if (select) {
+                            select.value = '';
+                        }
                     });
                 }
 
@@ -1100,6 +1412,10 @@
 
                     document.querySelector('#Ib3CheckPath').addEventListener('click', ib3CheckPath);
                     document.querySelector('#Ib3CreateLibrary').addEventListener('click', ib3CreateLibrary);
+                    document.querySelector('#Ib3LibraryMatrixToggle').addEventListener('click', ib3ToggleLibraryMatrix);
+                    document.querySelector('#Ib3DestinationPath').addEventListener('change', ib3ReloadLibraryMatrix);
+                    document.querySelector('#Ib3OrganizeByKind').addEventListener('change', ib3ReloadLibraryMatrix);
+                    document.querySelector('#Ib3LibraryName').addEventListener('change', ib3ReloadLibraryMatrix);
                     document.querySelector('#Ib3RunNow').addEventListener('click', ib3RunNow);
 
                     document.querySelector('#Ib3SectionSelect').addEventListener('change', ib3FillSubcategories);

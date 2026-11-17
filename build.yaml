@@ -18,6 +18,13 @@ owner: "Lowitle"
 artifacts:
   - "Jellyfin.Plugin.Ib3.dll"
 changelog: >
+  1.2.0.0: la página de configuración lista las ocho secciones de IB3 con su carpeta, dice si la biblioteca
+  «IB3» la indexa y qué bibliotecas del servidor la contienen, y ofrece un desplegable para añadir esa
+  sección a cualquier biblioteca que ya exista: «Documentals» a una biblioteca de documentales, «Arxiu» a
+  una de archivo, «Programes» a la de los niños. Jellyfin indexa una carpeta en todas las bibliotecas que
+  la apuntan, así que la sección sigue en «IB3» y no se copia ni un archivo; sólo se pueden añadir las
+  carpetas de las secciones de la carpeta de destino configurada, y la tabla se vuelve a leer después de
+  cada cambio para enseñar quién indexa cada carpeta.
   1.1.1.0: la biblioteca «IB3» pasa a apuntar a cada una de las ocho carpetas de sección en lugar de a la
   carpeta de destino, que era lo que hacía que Jellyfin mostrara «Sèries», «Documentals» o «Arxiu» como si
   fueran series y mezclara con ellas las carpetas de las subcategorías. La biblioteca se crea con las ocho
