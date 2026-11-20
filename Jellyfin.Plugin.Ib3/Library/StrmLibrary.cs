@@ -57,6 +57,7 @@ public static class StrmLibrary
         }
 
         var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seasons = new SortedSet<int>();
 
         foreach (var episode in episodes)
         {
@@ -64,6 +65,7 @@ public static class StrmLibrary
                 seriesFolder,
                 string.Format(CultureInfo.InvariantCulture, "Season {0}", episode.Season));
             Directory.CreateDirectory(seasonFolder);
+            seasons.Add(episode.Season);
 
             var baseName = Unique(
                 LibraryNaming.EpisodeFileName(series.Title, episode.Season, episode.Episode, episode.Title),
@@ -90,6 +92,20 @@ public static class StrmLibrary
             }
 
             count++;
+        }
+
+        if (options.WriteNfo)
+        {
+            foreach (var season in seasons.Where(number => number > 0))
+            {
+                filesWritten += LibraryIO.WriteText(
+                    Path.Combine(
+                        seriesFolder,
+                        string.Format(CultureInfo.InvariantCulture, "Season {0}", season),
+                        "season.nfo"),
+                    NfoBuilder.BuildSeason(season),
+                    written) ? 1 : 0;
+            }
         }
 
         var removed = options.DeleteObsolete ? DeleteObsolete(seriesFolder, written) : 0;

@@ -18,6 +18,13 @@ internal static class NfoBuilder
     /// «Actualitat»...), and the tags keep the exact IB3 category the program is filed under. The
     /// <c>ib3</c> unique id is always present and default: it is the key the plugin uses to recognise the
     /// series and to tell whether a folder is its own.
+    /// <para>
+    /// The year and the premiere date come from the first episode IB3 publishes —the catalog publishes no
+    /// production year—, the <c>mpaa</c> is the classification by age of the program, and the
+    /// <c>namedseason</c> elements name the seasons so Jellyfin shows «Temporada 1» instead of a bare
+    /// number. With <see cref="LibrarySeries.LockData"/> the document also carries <c>lockdata</c>, which
+    /// stops the online providers from replacing all of it.
+    /// </para>
     /// </remarks>
     internal static string BuildSeries(LibrarySeries series)
     {
@@ -30,6 +37,16 @@ internal static class NfoBuilder
             new XElement(
                 "plot",
                 string.IsNullOrWhiteSpace(series.Plot) ? $"Programes de {series.Title} a IB3." : series.Plot));
+
+        if (series.Year > 0)
+        {
+            root.Add(new XElement("year", series.Year.Value.ToString(CultureInfo.InvariantCulture)));
+        }
+
+        if (series.PremiereDate is { } premiere)
+        {
+            root.Add(new XElement("premiered", premiere.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)));
+        }
 
         if (!string.IsNullOrWhiteSpace(series.Country))
         {
@@ -49,22 +66,60 @@ internal static class NfoBuilder
         }
 
         root.Add(new XElement("tag", "IB3"));
+
+        if (!string.IsNullOrWhiteSpace(series.OfficialRating))
+        {
+            root.Add(new XElement("mpaa", series.OfficialRating.Trim()));
+        }
+
+        foreach (var season in series.Seasons.Where(number => number > 0).Distinct().Order())
+        {
+            root.Add(new XElement(
+                "namedseason",
+                new XAttribute("number", season.ToString(CultureInfo.InvariantCulture)),
+                string.Format(CultureInfo.InvariantCulture, "Temporada {0}", season)));
+        }
+
         root.Add(new XElement(
             "uniqueid",
             new XAttribute("type", "ib3"),
             new XAttribute("default", "true"),
             series.ProgramId));
 
-        var web = Client.Ib3Client.WebUrl(series.Slug);
-        if (web is not null)
+        if (!string.IsNullOrWhiteSpace(series.Website))
         {
-            root.Add(new XElement("website", web));
+            root.Add(new XElement("website", series.Website.Trim()));
         }
 
         if (!string.IsNullOrWhiteSpace(series.PosterUrl))
         {
             root.Add(new XElement("thumb", series.PosterUrl));
         }
+
+        if (series.LockData)
+        {
+            root.Add(new XElement("lockdata", "true"));
+        }
+
+        return Serialize(root);
+    }
+
+    /// <summary>
+    /// Builds the <c>season.nfo</c> document of a season.
+    /// </summary>
+    /// <param name="number">Season number.</param>
+    /// <returns>The NFO content.</returns>
+    /// <remarks>
+    /// Jellyfin reads <c>season.nfo</c> with <c>MediaBrowser.XbmcMetadata</c>: <c>seasonnumber</c> is the
+    /// index and <c>title</c> the name, so the seasons of the library stop being «Temporada 1» only
+    /// because the folder happens to say so.
+    /// </remarks>
+    internal static string BuildSeason(int number)
+    {
+        var root = new XElement(
+            "season",
+            new XElement("seasonnumber", number.ToString(CultureInfo.InvariantCulture)),
+            new XElement("title", string.Format(CultureInfo.InvariantCulture, "Temporada {0}", number)));
 
         return Serialize(root);
     }

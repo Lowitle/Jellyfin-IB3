@@ -124,8 +124,8 @@ public sealed partial class Ib3Client
     /// Resolves a reference typed by the user into a program of the catalog.
     /// </summary>
     /// <param name="reference">
-    /// The id of the program, the URL of its page (<c>https://totib3.org/emergencies/e12</c>), its slug or
-    /// its title.
+    /// The id of the program, the URL of its page (<c>https://totib3.org/play/tv/emergencies/e12</c>), its
+    /// slug or its title.
     /// </param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The program, or <c>null</c> when IB3 publishes no program that fits the reference.</returns>

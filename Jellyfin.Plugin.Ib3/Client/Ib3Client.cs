@@ -32,6 +32,14 @@ public sealed partial class Ib3Client : IDisposable
     internal const int MaxPages = 200;
 
     /// <summary>
+    /// Segments of the player of totib3.org that never name a program.
+    /// </summary>
+    private static readonly HashSet<string> PlayerSegments = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "play", "tv", "radio", "cat"
+    };
+
+    /// <summary>
     /// Catalog of programs, newest first.
     /// </summary>
     internal const string SearchUrl = "searchPrograms?order=date&offset={0}";
@@ -99,15 +107,21 @@ public sealed partial class Ib3Client : IDisposable
     /// </summary>
     /// <param name="slug">Slug of the program (<c>emergencies</c>).</param>
     /// <returns>The public URL, or <c>null</c> when the program has no slug.</returns>
+    /// <remarks>
+    /// The platform files the programs under <c>/play/tv/</c>; the slug straight under the host answers
+    /// 404 since the player of totib3.org replaced the old pages.
+    /// </remarks>
     public static string? WebUrl(string? slug)
-        => string.IsNullOrWhiteSpace(slug) ? null : "https://totib3.org/" + slug.Trim().Trim('/');
+        => string.IsNullOrWhiteSpace(slug)
+            ? null
+            : "https://totib3.org/play/tv/" + slug.Trim().Trim('/');
 
     /// <summary>
     /// Reads the slugs a reference typed by the user may name.
     /// </summary>
     /// <param name="reference">
-    /// A public URL (<c>https://totib3.org/emergencies/e12</c>), a slug (<c>emergencies</c>) or the id of
-    /// the program.
+    /// A public URL (<c>https://totib3.org/play/tv/emergencies/e12</c>), a slug (<c>emergencies</c>) or the
+    /// id of the program.
     /// </param>
     /// <returns>
     /// Every path segment that could be the slug of a program, in the order they appear, without
@@ -116,8 +130,10 @@ public sealed partial class Ib3Client : IDisposable
     /// <remarks>
     /// The catalog publishes the slug of every program, so the plugin resolves the reference against the
     /// catalog it already keeps in memory instead of guessing which segment is the program: in
-    /// <c>https://totib3.org/emergencies/e12</c> the program is the first segment, and in
-    /// <c>https://ib3.org/programa/emergencies</c> it is the second one.
+    /// <c>https://totib3.org/play/tv/emergencies/e12</c> the program is the third segment, and in
+    /// <c>https://ib3.org/programa/emergencies</c> it is the second one. The segments the player adds
+    /// (<c>play</c>, <c>tv</c>, <c>radio</c>...) and the ones that name an episode (<c>e12</c>,
+    /// <c>t1e13</c>) are skipped, so a pasted address never costs a lookup that cannot match.
     /// </remarks>
     public static IReadOnlyList<string> ProgramSlugs(string? reference)
     {
@@ -135,7 +151,9 @@ public sealed partial class Ib3Client : IDisposable
             // The host of the URL and the files of the URL carry a dot; the scheme carries a colon.
             if (segment.Contains('.', StringComparison.Ordinal)
                 || segment.Contains(':', StringComparison.Ordinal)
-                || !SlugRegex().IsMatch(segment))
+                || !SlugRegex().IsMatch(segment)
+                || PlayerSegments.Contains(segment)
+                || EpisodeRegex().IsMatch(segment))
             {
                 continue;
             }
@@ -152,4 +170,7 @@ public sealed partial class Ib3Client : IDisposable
 
     [GeneratedRegex(@"^[a-z0-9]+(?:[-_][a-z0-9]+)*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex SlugRegex();
+
+    [GeneratedRegex(@"^(?:e\d+|t\d+e\d+)$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
+    private static partial Regex EpisodeRegex();
 }

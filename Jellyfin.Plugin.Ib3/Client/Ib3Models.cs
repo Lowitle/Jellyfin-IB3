@@ -75,6 +75,18 @@ public sealed class Ib3Program
     public string? Release { get; set; }
 
     /// <summary>
+    /// Gets or sets the recommended age of the program: <c>7</c>, <c>12</c>, <c>16</c>, <c>18</c>, or
+    /// <c>1</c> for «todos los públicos». It is the classification by age, not a score.
+    /// </summary>
+    /// <remarks>
+    /// IB3 publishes it as a number or as <c>null</c>, so it is read as text like <c>season</c> and
+    /// <c>episode</c>. Of the 579 programs of the catalog only 93 publish it.
+    /// </remarks>
+    [JsonPropertyName("rate")]
+    [JsonConverter(typeof(Ib3TextConverter))]
+    public string? Rate { get; set; }
+
+    /// <summary>
     /// Gets or sets the seasons the program publishes (an array of numbers, or <c>null</c> when IB3
     /// publishes no season at all).
     /// </summary>

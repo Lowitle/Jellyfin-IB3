@@ -49,9 +49,10 @@ La página del plugin (**Panel de control → Plugins → IB3**) hace todo el re
    dirección de su página de totib3.org. Antes de añadirlo se puede **probar**, y la página enseña cuántos
    vídeos publica IB3, cuántos se pueden añadir y cuántos han caducado. Cada programa puede fijar su propia
    sección, y quitarlo de la lista borra su carpeta en la ejecución siguiente.
-6. **Opciones**: .nfo, subtítulos, imágenes, organización por sección (una subcarpeta por cada sección de
-   totib3.org), organización por subcategoría (una subcarpeta más dentro de la sección) y borrado de los
-   archivos de los vídeos que IB3 ha despublicado.
+6. **Opciones**: .nfo, bloqueo de los metadatos en Jellyfin (los NFO llevan `lockdata`), subtítulos,
+   imágenes, organización por sección (una subcarpeta por cada sección de totib3.org), organización por
+   subcategoría (una subcarpeta más dentro de la sección) y borrado de los archivos de los vídeos que IB3
+   ha despublicado.
 7. **Guardar** o **Ejecutar ahora**. La tarea programada repite la actualización cada N horas.
 
 La biblioteca queda como en la plataforma digital de IB3: ocho carpetas de primer nivel, una por sección, y
@@ -68,7 +69,27 @@ de «IB3».
 La primera ejecución tarda lo que IB3 tarde en servir el catálogo de cada programa; las siguientes solo
 descargan las imágenes y los subtítulos que faltan.
 
-## Compilar y empaquetar
+## Metadatos
+
+Los `.nfo` se construyen solo con lo que publica el catálogo de IB3 (`ib3media.org/api`, la API que usa
+totib3.org): el plugin no consulta TMDB, TVDB ni IMDb.
+
+| Fichero | Qué lleva |
+| --- | --- |
+| `tvshow.nfo` | título, sinopsis, año y fecha de estreno (del primer capítulo publicado), clasificación por edad (`mpaa`: `7`, `12`, `16`, `18` o `TP`), país, estudio, géneros (la sección y las subcategorías de IB3), etiquetas, `namedseason` («Temporada 1»…) y el `uniqueid` del programa |
+| `Season N/season.nfo` | el número y el nombre de la temporada |
+| `<capítulo>.nfo` | título, sinopsis, temporada, episodio, fecha de emisión, duración, miniatura y el `uniqueid` del vídeo |
+| `poster.jpg` | la carátula del programa, descargada del catálogo de IB3 |
+
+El `tvshow.nfo` lleva `lockdata` por defecto. Jellyfin lo lee (`IsLocked`) y deja de reemplazar el título,
+la sinopsis, el año y el póster con los de un proveedor online: es lo que impide que «Dona», «Ben» o
+«Ciclisme» —programas de IB3 con nombre de otras obras— se conviertan en una serie distinta. La opción
+**Bloquear los metadatos en Jellyfin** lo desactiva para una biblioteca que quiera enriquecerse con TMDB.
+
+La numeración sigue siendo la de IB3 (un informativo diario llega a `S01E5534`), que no coincide con la de
+ningún proveedor: por eso el `uniqueid` propio y el bloqueo son la ficha que Jellyfin muestra. Cruzar el
+catálogo con `open-tv-ids` para escribir también los ids de TMDB, TVDB e IMDb no está implementado todavía.
+
 
 ```powershell
 dotnet build Jellyfin.Plugin.Ib3.sln -c Release
@@ -84,9 +105,16 @@ tienen que decir lo mismo.
 
 ## Notas
 
+- **Metadatos**: los NFO se construyen solo con lo que publica el catálogo de IB3 (`ib3media.org/api`, la
+  API que usa totib3.org): título, sinopsis, año y fecha de estreno (del primer capítulo publicado),
+  clasificación por edad, géneros, etiquetas, temporadas nombradas y el `uniqueid` del programa y de cada
+  vídeo. El `tvshow.nfo` lleva `lockdata` por defecto, así que Jellyfin no reemplaza esos datos con los de
+  TMDB o TVDB; si se prefiere que manden los proveedores online, se desactiva **Bloquear los metadatos en
+  Jellyfin** y se vuelve a ejecutar la tarea.
 - **Numeración**: manda el número que publica IB3; un vídeo numerado con un código de producción toma el
   siguiente número libre de su temporada, en orden de emisión. Como esa numeración no coincide con TVDB ni
-  con TMDB, los metadatos online deben quedarse desactivados para esta biblioteca.
+  con TMDB, los episodios se numeran con la de IB3 y el bloqueo de metadatos es lo que mantiene la ficha
+  local.
 - **Geobloqueo y caducidad**: si IB3 no publica MP4 de un vídeo, el plugin lo omite, lo anota en el registro
   y lo reintenta en la ejecución siguiente.
 - **Borrado**: el plugin solo borra carpetas que escribió él y cuyo `tvshow.nfo` lleva el id del programa.

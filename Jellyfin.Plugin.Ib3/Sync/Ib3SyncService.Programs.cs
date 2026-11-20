@@ -61,18 +61,6 @@ public sealed partial class Ib3SyncService
             return 0;
         }
 
-        var series = new LibrarySeries
-        {
-            Title = seriesTitle,
-            ProgramId = programId,
-            Slug = program.Slug ?? reference.Slug,
-            Plot = Ib3Text.FromHtml(program.Description),
-            Genres = Genres(program),
-            Tags = Tags(program),
-            Country = "ES",
-            PosterUrl = PosterUrl(program)
-        };
-
         var episodes = await BuildEpisodesAsync(
             configuration,
             program,
@@ -92,6 +80,25 @@ public sealed partial class Ib3SyncService
             progress?.Report(1);
             return 0;
         }
+
+        var premiere = PremiereDate(episodes);
+        var series = new LibrarySeries
+        {
+            Title = seriesTitle,
+            ProgramId = programId,
+            Slug = program.Slug ?? reference.Slug,
+            Plot = Ib3Text.FromHtml(program.Description),
+            Genres = Genres(program),
+            Tags = Tags(program),
+            Country = "ES",
+            PosterUrl = PosterUrl(program),
+            Website = Ib3Client.WebUrl(program.Slug ?? reference.Slug),
+            OfficialRating = OfficialRating(program),
+            Year = premiere?.Year,
+            PremiereDate = premiere,
+            Seasons = SeasonNumbers(episodes),
+            LockData = configuration.LockMetadata
+        };
 
         var options = new LibraryWriteOptions
         {

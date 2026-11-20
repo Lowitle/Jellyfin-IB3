@@ -63,6 +63,18 @@ public class PluginConfiguration : BasePluginConfiguration
     public bool OrganizeBySubcategory { get; set; } = true;
 
     /// <summary>
+    /// Gets or sets a value indicating whether the <c>tvshow.nfo</c> carries <c>lockdata</c>, so the
+    /// metadata written by the plugin is what Jellyfin shows.
+    /// </summary>
+    /// <remarks>
+    /// The catalog carries no id of TMDB or TVDB, so a library with those providers enabled pairs a
+    /// program with the first work of the same name —«Dona», «Ben», «Ciclisme»— and replaces the title,
+    /// the plot and the poster written here. The lock stops that, and it is what makes the NFO the source
+    /// of truth the plugin claims it is.
+    /// </remarks>
+    public bool LockMetadata { get; set; } = true;
+
+    /// <summary>
     /// Gets or sets the name of the library the plugin offers to create.
     /// </summary>
     public string LibraryName { get; set; } = "IB3";

@@ -18,6 +18,16 @@ owner: "Lowitle"
 artifacts:
   - "Jellyfin.Plugin.Ib3.dll"
 changelog: >
+  1.3.0.0: los .nfo llevan «lockdata», así que Jellyfin no deja que TMDB o TVDB sustituyan el título, la
+  sinopsis y el año de un programa por los de otra serie de nombre parecido, que es lo que pasaba con los
+  programas de nombre común («Dona», «Ben», «Ciclisme») porque la numeración de IB3 nunca coincide con la
+  de los proveedores. El tvshow.nfo escribe además el año y la fecha de estreno —la del primer vídeo
+  emitido, porque la fecha de la ficha que publica el catálogo cambia cada vez que IB3 añade un capítulo—,
+  la clasificación por edad de IB3 como mpaa (el código 1, «todos los públicos», se escribe TP), un
+  namedseason por cada temporada y, en cada carpeta «Season N», un season.nfo con el número y el título.
+  La dirección web de la serie pasa a ser la del reproductor (totib3.org/play/tv/<slug>), que es la
+  que responde, y la página de configuración estrena una casilla, activada por defecto, para que manden
+  los proveedores online en lugar de los datos de IB3.
   1.2.0.0: la página de configuración lista las ocho secciones de IB3 con su carpeta, dice si la biblioteca
   «IB3» la indexa y qué bibliotecas del servidor la contienen, y ofrece un desplegable para añadir esa
   sección a cualquier biblioteca que ya exista: «Documentals» a una biblioteca de documentales, «Arxiu» a

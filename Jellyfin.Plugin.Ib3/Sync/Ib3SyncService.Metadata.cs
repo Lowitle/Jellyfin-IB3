@@ -79,6 +79,66 @@ public sealed partial class Ib3SyncService
         };
 
     /// <summary>
+    /// Reads the classification by age of a program.
+    /// </summary>
+    /// <param name="program">Program of the catalog.</param>
+    /// <returns>The rating, or <c>null</c> when IB3 publishes none.</returns>
+    /// <remarks>
+    /// IB3 codes «todos los públicos» as <c>1</c> and the rest as the recommended age (<c>7</c>,
+    /// <c>12</c>, <c>16</c>, <c>18</c>), so the value is written as the classification Jellyfin shows
+    /// («TP» for everyone) and not as a score.
+    /// </remarks>
+    internal static string? OfficialRating(Ib3Program program)
+    {
+        var rate = program.Rate?.Trim();
+
+        if (string.IsNullOrEmpty(rate))
+        {
+            return null;
+        }
+
+        return string.Equals(rate, "1", StringComparison.Ordinal) ? "TP" : rate;
+    }
+
+    /// <summary>
+    /// Gets the date of the first episode of the series, which is the premiere date Jellyfin shows.
+    /// </summary>
+    /// <param name="episodes">Episodes of the series, in any order.</param>
+    /// <returns>The date of the oldest broadcast, or <c>null</c> when IB3 publishes none.</returns>
+    /// <remarks>
+    /// The catalog publishes a <c>release</c> per program, but it is the date of the last change of the
+    /// fiche —it moves every time IB3 adds an episode—, so the first broadcast of the videos is the only
+    /// date that does not turn a series of 2015 into a series of this year.
+    /// </remarks>
+    internal static DateTimeOffset? PremiereDate(IReadOnlyList<LibraryEpisode> episodes)
+    {
+        DateTimeOffset? first = null;
+
+        foreach (var aired in episodes.Select(episode => episode.Aired).OfType<DateTimeOffset>())
+        {
+            if (first is null || aired < first.Value)
+            {
+                first = aired;
+            }
+        }
+
+        return first;
+    }
+
+    /// <summary>
+    /// Gets the seasons the written episodes belong to, so the <c>tvshow.nfo</c> names them.
+    /// </summary>
+    /// <param name="episodes">Episodes of the series.</param>
+    /// <returns>The distinct season numbers, in ascending order.</returns>
+    internal static IReadOnlyCollection<int> SeasonNumbers(IReadOnlyList<LibraryEpisode> episodes)
+        => episodes
+            .Select(episode => episode.Season)
+            .Where(number => number > 0)
+            .Distinct()
+            .Order()
+            .ToArray();
+
+    /// <summary>
     /// Gets the absolute URL of the poster of the program, preferring the biggest variant.
     /// </summary>
     /// <param name="program">Program of the catalog.</param>

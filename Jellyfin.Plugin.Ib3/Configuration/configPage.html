@@ -345,6 +345,19 @@
 
                     <div class="checkboxContainer checkboxContainer-withDescription">
                         <label class="emby-checkbox-label">
+                            <input id="Ib3LockMetadata" is="emby-checkbox" type="checkbox" />
+                            <span>Bloquear los metadatos en Jellyfin</span>
+                        </label>
+                        <div class="fieldDescription checkboxFieldDescription">
+                            Los NFO llevan <span class="ib3Mono">lockdata</span>: Jellyfin muestra el
+                            t&iacute;tulo, la sinopsis y el a&ntilde;o de IB3 y no deja que TMDB o TVDB los
+                            sustituyan por los de otra serie con un nombre parecido. Desact&iacute;valo si
+                            prefieres que manden los proveedores online.
+                        </div>
+                    </div>
+
+                    <div class="checkboxContainer checkboxContainer-withDescription">
+                        <label class="emby-checkbox-label">
                             <input id="Ib3WriteSubtitles" is="emby-checkbox" type="checkbox" />
                             <span>Descargar los subt&iacute;tulos (<span class="ib3Mono">.srt</span>)</span>
                         </label>
@@ -1320,6 +1333,8 @@
                         // a fresh installation writes the NFO, the subtitles and the poster.
                         document.querySelector('#Ib3WriteNfo').checked =
                             ib3Field(config, 'writeNfo') !== false;
+                        document.querySelector('#Ib3LockMetadata').checked =
+                            ib3Field(config, 'lockMetadata') !== false;
                         document.querySelector('#Ib3WriteSubtitles').checked =
                             ib3Field(config, 'writeSubtitles') !== false;
                         document.querySelector('#Ib3WriteArtwork').checked =
@@ -1346,6 +1361,7 @@
                         config.RefreshIntervalHours = ib3Int(
                             document.querySelector('#Ib3RefreshInterval').value, 12);
                         config.WriteNfo = ib3Checkbox('Ib3WriteNfo');
+                        config.LockMetadata = ib3Checkbox('Ib3LockMetadata');
                         config.WriteSubtitles = ib3Checkbox('Ib3WriteSubtitles');
                         config.WriteArtwork = ib3Checkbox('Ib3WriteArtwork');
                         config.DeleteObsoleteFiles = ib3Checkbox('Ib3DeleteObsolete');
