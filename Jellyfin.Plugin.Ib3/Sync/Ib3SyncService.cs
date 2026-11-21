@@ -100,6 +100,16 @@ public sealed partial class Ib3SyncService
             }
         }
 
+        // A program that moves out of the folder that grouped it —the subcategory folders of the versions
+        // before the layout was dropped— leaves it empty: the empty folder goes with it, so Jellyfin does
+        // not read it as one more series.
+        foreach (var folder in LibraryCategory.RemoveEmptySubcategoryFolders(configuration.DestinationPath))
+        {
+            _logger.LogInformation(
+                "IB3: subcarpeta vacía de una versión anterior eliminada ({Path})",
+                folder);
+        }
+
         progress?.Report(100);
         SaveRunState(references);
         _logger.LogInformation(

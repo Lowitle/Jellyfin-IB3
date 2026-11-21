@@ -1,7 +1,7 @@
 ---
 name: "IB3"
 guid: "6a1d7f43-9c2b-4e58-b0a4-3f7c1d9e5b28"
-version: "1.3.0.0"
+version: "1.3.1.0"
 targetAbi: "10.11.0.0"
 framework: "net9.0"
 overview: "Crea una biblioteca de series con el catálogo a la carta de IB3 (.strm + metadatos + subtítulos)."
@@ -18,6 +18,14 @@ owner: "Lowitle"
 artifacts:
   - "Jellyfin.Plugin.Ib3.dll"
 changelog: >
+  1.3.1.0: cada serie se escribe directamente en la carpeta de su sección y desaparece la opción de
+  separarlas por subcategoría. Jellyfin lee cualquier carpeta que sólo agrupa series como una serie más, así
+  que las subcarpetas de IB3 («Programes/Cuina», «Programes/Entreteniment», «Documentals/Història») salían en
+  la biblioteca como series vacías junto a las de verdad. La subcategoría no se pierde: sigue en los
+  metadatos, como género y etiqueta del tvshow.nfo. La primera ejecución mueve cada serie a la carpeta de su
+  sección, borra la carpeta que escribió antes —el plugin la recuerda en WrittenPath— y elimina la carpeta de
+  subcategoría en cuanto se queda vacía, así que Jellyfin deja de listarla; si todavía guarda una serie que ya
+  no está en la lista, se queda como está y se borra a mano.
   1.3.0.0: los .nfo llevan «lockdata», así que Jellyfin no deja que TMDB o TVDB sustituyan el título, la
   sinopsis y el año de un programa por los de otra serie de nombre parecido, que es lo que pasaba con los
   programas de nombre común («Dona», «Ben», «Ciclisme») porque la numeración de IB3 nunca coincide con la

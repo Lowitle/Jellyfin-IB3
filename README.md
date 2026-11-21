@@ -50,21 +50,21 @@ La página del plugin (**Panel de control → Plugins → IB3**) hace todo el re
    vídeos publica IB3, cuántos se pueden añadir y cuántos han caducado. Cada programa puede fijar su propia
    sección, y quitarlo de la lista borra su carpeta en la ejecución siguiente.
 6. **Opciones**: .nfo, bloqueo de los metadatos en Jellyfin (los NFO llevan `lockdata`), subtítulos,
-   imágenes, organización por sección (una subcarpeta por cada sección de totib3.org), organización por
-   subcategoría (una subcarpeta más dentro de la sección) y borrado de los archivos de los vídeos que IB3
-   ha despublicado.
+   imágenes, organización por sección (una subcarpeta por cada sección de totib3.org) y borrado de los
+   archivos de los vídeos que IB3 ha despublicado.
 7. **Guardar** o **Ejecutar ahora**. La tarea programada repite la actualización cada N horas.
 
 La biblioteca queda como en la plataforma digital de IB3: ocho carpetas de primer nivel, una por sección, y
-dentro la subcategoría cuando el programa la tiene (`Documentals/Història`, `Programes/IB3 Júnior`). Las ocho
-carpetas son las rutas de la biblioteca, no la carpeta de destino: si la biblioteca apuntara a la carpeta
-madre, Jellyfin leería cada nombre de sección como si fuera una serie y las carpetas de las subcategorías se
-mezclarían con ellas. Cuando IB3 publica un programa en dos secciones —cinco programas deportivos están en
-«Actualitat» y en «Programes»— manda el orden del menú, y la sección que se fije a mano en la página manda
-siempre sobre la del catálogo. Como Jellyfin indexa una carpeta en cada biblioteca que apunta a ella, la
-tabla de **Secciones y bibliotecas** añade una sección a una biblioteca que ya exista («IB3 Documentals» que
-solo apunte a `Documentals`, la de dibujos que apunte a `Programes`…) sin duplicar ni un archivo ni quitarla
-de «IB3».
+dentro una carpeta por programa, nunca un nivel más. La subcategoría de IB3 (`Cuina`, `Entreteniment`,
+`Documentals històrics`...) es un género y una etiqueta de la serie, no una carpeta: Jellyfin lee cualquier
+carpeta que solo agrupe series como una serie más y la muestra vacía junto a las de verdad. Las ocho carpetas
+son las rutas de la biblioteca, no la carpeta de destino: si la biblioteca apuntara a la carpeta madre,
+Jellyfin leería cada nombre de sección como si fuera una serie. Cuando IB3 publica un programa en dos
+secciones —cinco programas deportivos están en «Actualitat» y en «Programes»— manda el orden del menú, y la
+sección que se fije a mano en la página manda siempre sobre la del catálogo. Como Jellyfin indexa una carpeta
+en cada biblioteca que apunta a ella, la tabla de **Secciones y bibliotecas** añade una sección a una
+biblioteca que ya exista («IB3 Documentals» que solo apunte a `Documentals`, la de dibujos que apunte a
+`Programes`…) sin duplicar ni un archivo ni quitarla de «IB3».
 
 La primera ejecución tarda lo que IB3 tarde en servir el catálogo de cada programa; las siguientes solo
 descargan las imágenes y los subtítulos que faltan.
@@ -118,11 +118,17 @@ tienen que decir lo mismo.
 - **Geobloqueo y caducidad**: si IB3 no publica MP4 de un vídeo, el plugin lo omite, lo anota en el registro
   y lo reintenta en la ejecución siguiente.
 - **Borrado**: el plugin solo borra carpetas que escribió él y cuyo `tvshow.nfo` lleva el id del programa.
-- **Actualizar desde la 1.0**: la primera ejecución reescribe cada serie en la carpeta de su sección (y de
-  su subcategoría) y borra la carpeta que escribió la vez anterior, que el plugin recuerda en `WrittenPath`;
-  las series antiguas no se duplican. Las carpetas del layout anterior (`Informatius`, `Infantil`,
-  `Esports`...) quedan vacías y se pueden borrar a mano, y los nombres antiguos de la configuración se
-  siguen leyendo: se mapean a la sección que les corresponde.
+- **Actualizar desde la 1.3.0 o anterior**: las carpetas de subcategoría (`Programes/Cuina`,
+  `Documentals/Història`...) ya no se escriben. La primera ejecución reescribe cada serie en la carpeta de su
+  sección, borra la carpeta que escribió la vez anterior —el plugin la recuerda en `WrittenPath`— y elimina la
+  carpeta de subcategoría cuando se queda vacía, así que Jellyfin deja de listar `Cuina` o `Entreteniment`
+  como series. Una carpeta que todavía guarde una serie que ya no está en la lista se queda como está: se
+  borra a mano desde el sistema de archivos.
+- **Actualizar desde la 1.0**: la primera ejecución reescribe cada serie en la carpeta de su sección y borra
+  la carpeta que escribió la vez anterior, que el plugin recuerda en `WrittenPath`; las series antiguas no se
+  duplican. Las carpetas del layout anterior (`Informatius`, `Infantil`, `Esports`...) quedan vacías y se
+  pueden borrar a mano, y los nombres antiguos de la configuración se siguen leyendo: se mapean a la sección
+  que les corresponde.
 
 ## Repositorio
 
@@ -130,7 +136,7 @@ tienen que decir lo mismo.
 | --- | --- |
 | `Directory.Build.props` | Versión del plugin (la leen el `.csproj`, `package.ps1` y el workflow de release). |
 | `Jellyfin.Plugin.Ib3.sln` | Solución con el único proyecto del plugin. |
-| `Jellyfin.Plugin.Ib3/Client/Ib3Categories.cs` | Tabla de las ocho secciones de totib3.org y sus subcategorías: es la fuente que nombra las carpetas. |
+| `Jellyfin.Plugin.Ib3/Client/Ib3Categories.cs` | Tabla de las ocho secciones de totib3.org y sus subcategorías: la sección es la que nombra la carpeta, la subcategoría solo va a los géneros de la serie. |
 | `package.ps1` | Compila en `Release` y deja `dist/ib3_<versión>.zip`. |
 | `scripts/Update-Manifest.ps1` | Inserta en `manifest.json` la versión con su MD5 y su `sourceUrl`. |
 | `scripts/Release.ps1` | Publica una versión: sube el número, empaqueta, actualiza el manifiesto, commitea y empuja el tag. |

@@ -2,8 +2,8 @@
 {
   "guid": "6a1d7f43-9c2b-4e58-b0a4-3f7c1d9e5b28",
   "name": "IB3",
-  "description": "Genera una biblioteca de series a partir del catálogo a la carta de IB3 (.strm + metadatos + subtítulos), con una carpeta por sección y subcategoría de totib3.org.",
-  "overview": "Replica el catálogo de IB3 como biblioteca de series de Jellyfin mediante archivos .strm, con metadatos .nfo, carátulas y subtítulos SRT convertidos desde los WebVTT originales, organizada en las secciones de totib3.org y sus subcategorías.",
+  "description": "Genera una biblioteca de series a partir del catálogo a la carta de IB3 (.strm + metadatos + subtítulos), con una carpeta por sección de totib3.org.",
+  "overview": "Replica el catálogo de IB3 como biblioteca de series de Jellyfin mediante archivos .strm, con metadatos .nfo, carátulas y subtítulos SRT convertidos desde los WebVTT originales, organizada en las ocho secciones de totib3.org.",
   "owner": "Lowitle",
   "category": "General",
   "versions": [

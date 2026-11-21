@@ -192,8 +192,8 @@ public sealed partial class Ib3SyncService
     }
 
     /// <summary>
-    /// Resolves the folder the series is written to: the destination folder itself, or the folder of the
-    /// section (and of its subcategory) when the layout is on.
+    /// Resolves the folder the series is written to: the destination folder itself, or the folder of its
+    /// section when the layout is on.
     /// </summary>
     /// <param name="configuration">Plugin configuration.</param>
     /// <param name="program">Program of the catalog.</param>
@@ -211,17 +211,11 @@ public sealed partial class Ib3SyncService
             return destination;
         }
 
+        // Straight in the folder of the section: the subcategory IB3 files the program under is metadata (a
+        // genre and a tag of the tvshow.nfo), never a folder, because Jellyfin reads a folder that only
+        // groups other series («Programes/Cuina») as a series of its own and the library ends up with empty
+        // shows next to the real ones.
         var category = Ib3Client.Ib3CategoryName(program);
-        var section = LibraryCategory.Resolve(category, reference.CategoryOverride);
-
-        // The subcategory is a child of the section IB3 gives the program: once the user pins the program
-        // to another section the subcategory would name a folder the platform does not have
-        // («Cinema/Cuina»), so it is only written while the program keeps its section.
-        var subcategory = configuration.OrganizeBySubcategory
-            && string.Equals(section, LibraryCategory.Resolve(category, null), StringComparison.Ordinal)
-                ? Ib3Client.Ib3SubcategoryName(program)
-                : null;
-
-        return LibraryCategory.Folder(destination, section, subcategory);
+        return LibraryCategory.Folder(destination, LibraryCategory.Resolve(category, reference.CategoryOverride));
     }
 }

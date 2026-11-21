@@ -388,19 +388,9 @@
                             <span class="ib3Mono">S&egrave;ries</span>, <span class="ib3Mono">Cinema</span>,
                             <span class="ib3Mono">Documentals</span>, <span class="ib3Mono">Programes</span>,
                             <span class="ib3Mono">Destacat</span> o <span class="ib3Mono">Arxiu</span>.
-                        </div>
-                    </div>
-
-                    <div class="checkboxContainer checkboxContainer-withDescription">
-                        <label class="emby-checkbox-label">
-                            <input id="Ib3OrganizeBySubcategory" is="emby-checkbox" type="checkbox" />
-                            <span>Separar adem&aacute;s por subcategor&iacute;a</span>
-                        </label>
-                        <div class="fieldDescription checkboxFieldDescription">
-                            Dentro de la secci&oacute;n se abre la subcarpeta de la subcategor&iacute;a de IB3
-                            (<span class="ib3Mono">Documentals/Hist&ograve;ria</span>,
-                            <span class="ib3Mono">Programes/IB3 J&uacute;nior</span>...). Un programa sin
-                            subcategor&iacute;a se escribe directamente en la carpeta de su secci&oacute;n.
+                            Dentro, una carpeta por serie y nada m&aacute;s: la subcategor&iacute;a de IB3 se
+                            guarda como g&eacute;nero y etiqueta de la serie, porque Jellyfin lee cualquier
+                            carpeta que s&oacute;lo agrupe series como una serie m&aacute;s.
                         </div>
                     </div>
 
@@ -1343,8 +1333,6 @@
                             ib3Field(config, 'deleteObsoleteFiles') !== false;
                         document.querySelector('#Ib3OrganizeByKind').checked =
                             ib3Field(config, 'organizeByKind') !== false;
-                        document.querySelector('#Ib3OrganizeBySubcategory').checked =
-                            ib3Field(config, 'organizeBySubcategory') !== false;
 
                         ib3RenderPrograms();
                         Dashboard.hideLoadingMsg();
@@ -1366,7 +1354,6 @@
                         config.WriteArtwork = ib3Checkbox('Ib3WriteArtwork');
                         config.DeleteObsoleteFiles = ib3Checkbox('Ib3DeleteObsolete');
                         config.OrganizeByKind = ib3Checkbox('Ib3OrganizeByKind');
-                        config.OrganizeBySubcategory = ib3Checkbox('Ib3OrganizeBySubcategory');
                         // Every field the task reads is sent back, so a save from the page never drops the
                         // folder the last run wrote nor the reference of a program.
                         config.Programs = Ib3.programs.map(function (program) {

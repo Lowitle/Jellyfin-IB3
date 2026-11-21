@@ -3,16 +3,23 @@ using Jellyfin.Plugin.Ib3.Client;
 namespace Jellyfin.Plugin.Ib3.Library;
 
 /// <summary>
-/// Folders the programs of IB3 are written to, one per section of <c>totib3.org</c>, plus the subfolder of
-/// the subcategory each program is filed under.
+/// Folders the programs of IB3 are written to, one per section of <c>totib3.org</c>.
 /// </summary>
 /// <remarks>
+/// <para>
 /// The platform publishes eight sections of video —«Actualitat», «Retransmissions», «Sèries», «Cinema»,
 /// «Documentals», «Programes», «Destacat» and «Arxiu»— and most of them are divided in subcategories. A
 /// destination folder that holds every program straight under it forces the user to keep a single library:
 /// with one folder per section the default «IB3» library indexes all of them and a curated library can
 /// point at just one —Jellyfin indexes a folder in every library that points at it, so no file is
-/// duplicated—, while the subfolder adds the second level the site shows in its menu.
+/// duplicated.
+/// </para>
+/// <para>
+/// The subcategories of the site are not folders: a library of «Programas de TV» reads every folder that
+/// groups other series («Programes/Cuina», «Programes/Entreteniment») as a series of its own, so the series
+/// folder is always written straight in the folder of its section, and the subcategory stays where
+/// Jellyfin wants it, in the metadata of the program (a genre and a tag of the <c>tvshow.nfo</c>).
+/// </para>
 /// <para>
 /// The folders are only written when the user turns the layout on
 /// (<see cref="Configuration.PluginConfiguration.OrganizeByKind"/>): a library written with the layout off
@@ -122,19 +129,50 @@ internal static class LibraryCategory
     }
 
     /// <summary>
-    /// Normalizes the name of a subcategory to a single folder name.
+    /// Deletes the empty folders the subcategory layout of the previous versions left inside the sections.
     /// </summary>
-    /// <param name="subcategory">Subcategory the program is filed under, or <c>null</c>.</param>
-    /// <returns>The folder of the subcategory, or <c>null</c> when there is none to write.</returns>
+    /// <param name="rootPath">Destination folder of the plugin.</param>
+    /// <returns>The folders that were deleted, in the order of the layout.</returns>
     /// <remarks>
-    /// The subcategory is a name of the platform («IB3 Júnior», «Documentals històrics»), so it is only
-    /// sanitized: nothing of the layout depends on its value, it only subdivides the folder of the section.
+    /// The subcategory folders («Programes/Cuina», «Documentals/Història») were dropped because a library of
+    /// «Programas de TV» reads a folder that only groups other series as a series of its own, so the program
+    /// that moves up a level leaves an empty folder behind. Only a folder with nothing inside is removed —a
+    /// series the plugin does not write any more keeps its folder, and so does anything of the user—, and a
+    /// folder that cannot be read or deleted is left for the next run.
     /// </remarks>
-    internal static string? Subcategory(string? subcategory)
+    internal static IReadOnlyList<string> RemoveEmptySubcategoryFolders(string rootPath)
     {
-        var name = string.IsNullOrWhiteSpace(subcategory) ? null : LibraryNaming.Sanitize(subcategory, 80, string.Empty);
+        ArgumentException.ThrowIfNullOrWhiteSpace(rootPath);
 
-        return string.IsNullOrEmpty(name) ? null : name;
+        var removed = new List<string>();
+
+        foreach (var section in Sections(rootPath))
+        {
+            if (!Directory.Exists(section))
+            {
+                continue;
+            }
+
+            try
+            {
+                foreach (var folder in Directory.EnumerateDirectories(section))
+                {
+                    if (Directory.EnumerateFileSystemEntries(folder).Any())
+                    {
+                        continue;
+                    }
+
+                    Directory.Delete(folder);
+                    removed.Add(folder);
+                }
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                // Nothing else to do: the next run tries again.
+            }
+        }
+
+        return removed;
     }
 
     /// <summary>
@@ -160,16 +198,4 @@ internal static class LibraryCategory
     /// </remarks>
     internal static IReadOnlyList<string> Sections(string rootPath)
         => [.. All.Select(section => Folder(rootPath, section))];
-
-    /// <summary>
-    /// Builds the folder a program is written to, with the subfolder of its subcategory when it has one.
-    /// </summary>
-    /// <param name="rootPath">Destination folder of the plugin.</param>
-    /// <param name="category">Section of the program.</param>
-    /// <param name="subcategory">Subcategory of the program, or <c>null</c>.</param>
-    /// <returns>The folder of the section, or the subfolder of the subcategory inside it.</returns>
-    internal static string Folder(string rootPath, string category, string? subcategory)
-        => Subcategory(subcategory) is { } name
-            ? Path.Combine(Folder(rootPath, category), name)
-            : Folder(rootPath, category);
 }
